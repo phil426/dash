@@ -25,49 +25,42 @@ export default function EventsWidget() {
     : ALL_EVENTS.filter(e => e.cat === category)
 
   return (
-    <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '10px 16px', overflow: 'hidden' }}>
-      {/* Header row with title + category pills */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexShrink: 0 }}>
-        <span className="card-label" style={{ marginRight: 'auto' }}>Upcoming Events</span>
+    <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div className="card-header">
+        <span className="card-label">Upcoming Events</span>
+        <span className="card-badge">Bay Area</span>
+      </div>
+
+      <div className="tab-bar">
         {CATEGORIES.map(cat => (
           <button
             key={cat}
+            className={`tab-btn ${category === cat ? 'active' : ''}`}
             onClick={() => setCategory(cat)}
-            style={{
-              background: category === cat ? 'var(--accent)' : 'var(--bg-elevated)',
-              color: category === cat ? '#000' : 'var(--text-muted)',
-              border: 'none', fontFamily: 'var(--font-data)', fontSize: 9,
-              fontWeight: 700, letterSpacing: '0.06em', padding: '3px 10px',
-              borderRadius: 100, cursor: 'pointer',
-            }}
           >
             {cat}
           </button>
         ))}
       </div>
 
-      {/* Horizontal scrollable event cards */}
-      <div style={{ flex: 1, display: 'flex', gap: 8, overflowX: 'auto', overflowY: 'hidden', minHeight: 0 }}>
-        {filtered.map((e, i) => (
-          <div key={i} style={{
-            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10,
-            padding: '8px 14px', background: 'var(--bg-elevated)', borderRadius: 10,
-            border: '1px solid var(--border)',
-          }}>
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              padding: '4px 8px', borderRadius: 8, background: 'rgba(0,217,163,0.08)',
-              lineHeight: 1,
-            }}>
-              <span style={{ fontFamily: 'var(--font-data)', fontSize: 8, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.08em' }}>{e.month}</span>
-              <span style={{ fontFamily: 'var(--font-data)', fontSize: 16, fontWeight: 700, color: 'var(--accent)' }}>{e.day}</span>
+      <div className="events-list" style={{ flex: 1, overflowY: 'auto' }}>
+        {filtered.length === 0 ? (
+          <div style={{ color: 'var(--text-muted)', fontSize: 13, padding: 12 }}>No events in this category</div>
+        ) : (
+          filtered.map((e, i) => (
+            <div className="event-item" key={i}>
+              <div className="event-date-badge">
+                <span className="event-date-month">{e.month}</span>
+                <span className="event-date-day">{e.day}</span>
+              </div>
+              <div className="event-details">
+                <span className="event-name">{e.name}</span>
+                <span className="event-venue">{e.venue}</span>
+                <span className="event-time">{e.time}</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{e.name}</span>
-              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{e.venue} · {e.time}</span>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   )

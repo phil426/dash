@@ -11,7 +11,24 @@ export default function MapWidget() {
   const [status, setStatus] = useState('Locating...')
   const [address, setAddress] = useState('')
   const [speed, setSpeed] = useState(null)
-  const [gForce, setGForce] = useState({ x: 0, y: 0, total: 0 })
+  const [zoom, setZoom] = useState(15)
+
+  function updateMarkerColor() {
+    if (!markerRef.current) return
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00d9a3'
+    const glowIcon = L.divIcon({
+      className: '',
+      html: `<div style="
+        width: 16px; height: 16px; border-radius: 50%;
+        background: ${accent};
+        box-shadow: 0 0 16px ${accent}, 0 0 32px ${accent}66;
+        border: 2px solid rgba(255,255,255,0.8);
+      "></div>`,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    })
+    markerRef.current.setIcon(glowIcon)
+  }
 
   // Map + Geolocation
   useEffect(() => {
@@ -24,18 +41,26 @@ export default function MapWidget() {
       zoom: 15,
       zoomControl: false,
       attributionControl: false,
+      dragging: true,
+      touchZoom: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      boxZoom: false,
+      keyboard: false,
+      tap: true,
     })
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
     }).addTo(mapInstance.current)
 
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00d9a3'
     const glowIcon = L.divIcon({
       className: '',
       html: `<div style="
         width: 16px; height: 16px; border-radius: 50%;
-        background: #00d9a3;
-        box-shadow: 0 0 16px #00d9a3, 0 0 32px rgba(0,217,163,0.4);
+        background: ${accent};
+        box-shadow: 0 0 16px ${accent}, 0 0 32px ${accent}66;
         border: 2px solid rgba(255,255,255,0.8);
       "></div>`,
       iconSize: [16, 16],
@@ -44,17 +69,20 @@ export default function MapWidget() {
 
     markerRef.current = L.marker(defaultPos, { icon: glowIcon }).addTo(mapInstance.current)
 
+    mapInstance.current.on('zoomend', () => {
+      setZoom(mapInstance.current.getZoom())
+    })
+
     if ('geolocation' in navigator) {
       const watchId = navigator.geolocation.watchPosition(
         async (pos) => {
           const { latitude, longitude, speed: spd } = pos.coords
           const latlng = [latitude, longitude]
           markerRef.current.setLatLng(latlng)
-          mapInstance.current.setView(latlng, 15, { animate: true })
+          mapInstance.current.setView(latlng, mapInstance.current.getZoom(), { animate: true })
           setStatus('Live')
           setSpeed(spd)
 
-          // Reverse geocode
           try {
             const res = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`,
@@ -64,9 +92,7 @@ export default function MapWidget() {
             if (data.display_name) {
               setAddress(data.display_name.split(',').slice(0, 3).join(','))
             }
-          } catch (e) {
-            // Address unavailable is fine
-          }
+          } catch (e) {}
         },
         () => setStatus('San Francisco'),
         { enableHighAccuracy: true, maximumAge: 5000 }
@@ -84,69 +110,32 @@ export default function MapWidget() {
     }
   }, [])
 
-  // Accelerometer / DeviceMotion
+  // Watch for theme changes and update marker
   useEffect(() => {
-    let animFrame
-    let lastX = 0, lastY = 0
-
-    function handleMotion(e) {
-      const accel = e.accelerationIncludingGravity || e.acceleration
-      if (!accel) return
-
-      // Normalize: divide by 9.81 to get g-forces, clamp to ±1g
-      const gx = Math.max(-1, Math.min(1, (accel.x || 0) / 9.81))
-      const gy = Math.max(-1, Math.min(1, (accel.y || 0) / 9.81))
-      const total = Math.sqrt(gx * gx + gy * gy)
-
-      // Smooth
-      lastX = lastX * 0.7 + gx * 0.3
-      lastY = lastY * 0.7 + gy * 0.3
-
-      setGForce({ x: lastX, y: lastY, total })
-    }
-
-    if ('DeviceMotionEvent' in window) {
-      // Request permission on iOS 13+
-      if (typeof DeviceMotionEvent.requestPermission === 'function') {
-        DeviceMotionEvent.requestPermission().then(state => {
-          if (state === 'granted') {
-            window.addEventListener('devicemotion', handleMotion)
-          }
-        }).catch(() => {})
-      } else {
-        window.addEventListener('devicemotion', handleMotion)
-      }
-    }
-
-    // Desktop fallback: gentle simulation
-    if (!('DeviceMotionEvent' in window) || navigator.userAgent.includes('Macintosh')) {
-      let t = 0
-      const sim = () => {
-        t += 0.02
-        const gx = Math.sin(t * 0.7) * 0.05 + (Math.random() - 0.5) * 0.03
-        const gy = Math.cos(t * 0.5) * 0.04 + (Math.random() - 0.5) * 0.02
-        const total = Math.sqrt(gx * gx + gy * gy)
-        setGForce({ x: gx, y: gy, total })
-        animFrame = requestAnimationFrame(sim)
-      }
-      sim()
-    }
-
-    return () => {
-      window.removeEventListener('devicemotion', handleMotion)
-      if (animFrame) cancelAnimationFrame(animFrame)
-    }
+    const observer = new MutationObserver(() => updateMarkerColor())
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => observer.disconnect()
   }, [])
 
-  // Convert g-force to dot position (50% = center)
-  const dotLeft = 50 + gForce.x * 40  // ±40% range
-  const dotTop = 50 - gForce.y * 40   // inverted Y
+  function handleZoom(dir) {
+    if (!mapInstance.current) return
+    if (dir === 'in') mapInstance.current.zoomIn()
+    else mapInstance.current.zoomOut()
+  }
 
-  const speedMph = speed ? `${Math.round(speed * 2.237)} mph` : '0 mph'
+  const speedNum = speed ? Math.round(speed * 2.237) : 0
+  const speedMph = `${speedNum} mph`
 
-  // G-force color: green when smooth, amber when moderate, red when aggressive
-  const gTotal = gForce.total
-  const gColor = gTotal < 0.15 ? '#00cc66' : gTotal < 0.4 ? '#ff9500' : '#ff3b30'
+  const zoomBtnStyle = {
+    width: 36, height: 36, borderRadius: 8,
+    border: '1px solid var(--border-light)',
+    background: 'rgba(0,0,0,0.7)',
+    color: 'var(--text-primary)',
+    fontSize: 18, fontWeight: 700,
+    cursor: 'pointer', display: 'flex',
+    alignItems: 'center', justifyContent: 'center',
+    backdropFilter: 'blur(8px)',
+  }
 
   return (
     <div className="card hero" style={{ height: '100%' }}>
@@ -160,33 +149,59 @@ export default function MapWidget() {
           </div>
         )}
         <div className="map-info-speed">{speedMph}</div>
+
+        {/* Speed indicator bar */}
+        <div style={{
+          width: 200, padding: '8px 14px',
+          background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)',
+          borderRadius: 8, border: '1px solid rgba(0,217,163,0.1)',
+        }}>
+          <div style={{ position: 'relative', height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.08)' }}>
+            {/* Filled track */}
+            <div style={{
+              position: 'absolute', top: 0, left: 0, height: '100%',
+              width: `${Math.min((speedNum / 100) * 100, 100)}%`,
+              borderRadius: 3,
+              background: `linear-gradient(90deg, var(--accent), ${speedNum > 70 ? 'var(--accent-warm)' : 'var(--accent)'})`,
+              transition: 'width 0.5s ease',
+            }} />
+            {/* Dot */}
+            <div style={{
+              position: 'absolute', top: '50%',
+              left: `${Math.min((speedNum / 100) * 100, 100)}%`,
+              transform: 'translate(-50%, -50%)',
+              width: 14, height: 14, borderRadius: '50%',
+              background: 'var(--accent)',
+              border: '2px solid rgba(255,255,255,0.9)',
+              boxShadow: '0 0 8px var(--accent)',
+              transition: 'left 0.5s ease',
+            }} />
+          </div>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', marginTop: 4,
+            fontFamily: 'var(--font-data)', fontSize: 9, color: 'var(--text-muted)',
+            letterSpacing: '0.05em',
+          }}>
+            <span>0</span>
+            <span>50</span>
+            <span>100</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Zoom controls */}
+      <div style={{
+        position: 'absolute', right: 12, bottom: 48,
+        display: 'flex', flexDirection: 'column', gap: 4, zIndex: 1000,
+      }}>
+        <button onClick={() => handleZoom('in')} style={zoomBtnStyle}>+</button>
+        <button onClick={() => handleZoom('out')} style={zoomBtnStyle}>−</button>
       </div>
 
       {/* Bottom-left: Status pill */}
       <div className="map-overlay">
         <div className="map-pill">
           <span className="dot map-dot" /> {status}
-        </div>
-      </div>
-
-      {/* Bottom-right: G-Force gauge */}
-      <div className="gforce-container">
-        <div className="gforce-gauge">
-          <div className="gforce-crosshair" />
-          <div className="gforce-ring" />
-          <div
-            className="gforce-dot"
-            style={{
-              left: `${dotLeft}%`,
-              top: `${dotTop}%`,
-              background: gColor,
-              boxShadow: `0 0 10px ${gColor}, 0 0 20px ${gColor}40`,
-            }}
-          />
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span className="gforce-label">G-Force</span>
-          <span className="gforce-value" style={{ color: gColor }}>{gTotal.toFixed(2)}g</span>
         </div>
       </div>
     </div>

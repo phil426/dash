@@ -1,137 +1,170 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-const AIRPORTS = {
-  SFO: {
-    name: 'SAN FRANCISCO INTL',
-    departures: [
-      { time: '4:55P', dest: 'LAX', city: 'Los Angeles', flight: 'UA 1204', gate: 'B8', status: 'BOARD' },
-      { time: '5:10P', dest: 'JFK', city: 'New York', flight: 'UA 1542', gate: 'B42', status: 'ON TIME' },
-      { time: '5:25P', dest: 'SEA', city: 'Seattle', flight: 'AS 308', gate: 'D4', status: 'ON TIME' },
-      { time: '5:40P', dest: 'ORD', city: 'Chicago', flight: 'UA 628', gate: 'E7', status: 'DELAY' },
-      { time: '5:55P', dest: 'DEN', city: 'Denver', flight: 'UA 487', gate: 'F12', status: 'ON TIME' },
-      { time: '6:10P', dest: 'HNL', city: 'Honolulu', flight: 'HA 12', gate: 'A3', status: 'ON TIME' },
-      { time: '6:30P', dest: 'DFW', city: 'Dallas', flight: 'AA 1986', gate: 'D9', status: 'GONE' },
-      { time: '6:45P', dest: 'NRT', city: 'Tokyo', flight: 'UA 837', gate: 'G2', status: 'ON TIME' },
-      { time: '7:00P', dest: 'LHR', city: 'London', flight: 'BA 286', gate: 'A10', status: 'BOARD' },
-      { time: '7:20P', dest: 'SIN', city: 'Singapore', flight: 'SQ 1', gate: 'G8', status: 'ON TIME' },
-    ],
-  },
-  OAK: {
-    name: 'OAKLAND INTL',
-    departures: [
-      { time: '5:00P', dest: 'LAX', city: 'Los Angeles', flight: 'WN 2341', gate: '25', status: 'BOARD' },
-      { time: '5:20P', dest: 'PDX', city: 'Portland', flight: 'WN 1088', gate: '28', status: 'ON TIME' },
-      { time: '5:35P', dest: 'LAS', city: 'Las Vegas', flight: 'WN 474', gate: '22', status: 'DELAY' },
-      { time: '5:50P', dest: 'PHX', city: 'Phoenix', flight: 'WN 1512', gate: '30', status: 'ON TIME' },
-      { time: '6:05P', dest: 'DEN', city: 'Denver', flight: 'WN 892', gate: '24', status: 'ON TIME' },
-      { time: '6:25P', dest: 'SAN', city: 'San Diego', flight: 'WN 2204', gate: '27', status: 'GONE' },
-      { time: '6:45P', dest: 'SEA', city: 'Seattle', flight: 'WN 317', gate: '31', status: 'ON TIME' },
-      { time: '7:00P', dest: 'BUR', city: 'Burbank', flight: 'WN 1753', gate: '23', status: 'ON TIME' },
-    ],
-  },
-  STS: {
-    name: 'SONOMA COUNTY',
-    departures: [
-      { time: '5:15P', dest: 'LAX', city: 'Los Angeles', flight: 'AA 5921', gate: '3', status: 'BOARD' },
-      { time: '6:00P', dest: 'SAN', city: 'San Diego', flight: 'AA 5843', gate: '2', status: 'ON TIME' },
-      { time: '7:30P', dest: 'DFW', city: 'Dallas', flight: 'AA 5692', gate: '1', status: 'ON TIME' },
-      { time: '8:45P', dest: 'PHX', city: 'Phoenix', flight: 'AA 5704', gate: '4', status: 'DELAY' },
-    ],
-  },
-}
+const AIRPORTS = ['SFO', 'OAK', 'STS']
 
-function StatusIndicator({ status }) {
-  const color =
-    status === 'BOARD' ? '#00d9a3' :
-    status === 'ON TIME' ? '#00cc66' :
-    status === 'DELAY' ? '#ff9500' :
-    '#2f5650'
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end',
-    }}>
-      <span style={{
-        fontFamily: 'var(--font-data)', fontSize: 9, fontWeight: 700,
-        color, letterSpacing: '0.06em',
-      }}>
-        {status}
-      </span>
-      <span style={{
-        width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: color,
-        boxShadow: `0 0 8px ${color}`,
-        animation: status === 'BOARD' ? 'pulse-badge 2s ease-in-out infinite' : 'none',
-      }} />
-    </span>
-  )
+const MOCK_DEPARTURES = [
+  { time: '4:55 PM', city: 'LOS ANGELES', airline: 'UNITED', flight: 'UA 1204', gate: 'B8', status: 'ON TIME' },
+  { time: '5:10 PM', city: 'NEW YORK', airline: 'UNITED', flight: 'UA 1542', gate: 'B42', status: 'ON TIME' },
+  { time: '5:25 PM', city: 'SEATTLE', airline: 'ALASKA', flight: 'AS 308', gate: 'D4', status: 'ON TIME' },
+]
+
+const MOCK_ARRIVALS = [
+  { time: '5:30 PM', city: 'LOS ANGELES', airline: 'UNITED', flight: 'UA 1205', gate: 'A2', status: 'EN ROUTE' },
+  { time: '6:00 PM', city: 'CHICAGO', airline: 'UNITED', flight: 'UA 629', gate: 'B5', status: 'ON TIME' },
+  { time: '6:15 PM', city: 'DENVER', airline: 'UNITED', flight: 'UA 488', gate: 'C3', status: 'ON TIME' },
+]
+
+function statusColor(status) {
+  if (status === 'EN ROUTE') return 'var(--accent)'          // #00d9a3
+  if (status === 'DELAYED') return 'var(--accent-warm)'      // #ff9500
+  if (status === 'CANCELLED') return 'var(--accent-red)'     // #ff3b30
+  if (status === 'LANDED') return 'var(--text-secondary)'    // #6a9e94
+  return 'var(--accent-green)'                                // #00cc66 ON TIME
 }
 
 export default function DeparturesWidget() {
   const [airport, setAirport] = useState('SFO')
-  const info = AIRPORTS[airport]
+  const [flightType, setFlightType] = useState('departures')
+  const [flights, setFlights] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+
+    fetch(`/api/departures?airport=${airport}&type=${flightType}`)
+      .then(res => res.json())
+      .then(data => {
+        if (cancelled) return
+        if (data.error) {
+          setError(data.error)
+          setFlights(flightType === 'arrivals' ? MOCK_ARRIVALS : MOCK_DEPARTURES)
+        } else {
+          setFlights(data.flights?.length ? data.flights : (flightType === 'arrivals' ? MOCK_ARRIVALS : MOCK_DEPARTURES))
+        }
+        setLoading(false)
+      })
+      .catch(err => {
+        if (cancelled) return
+        setError(err.message)
+        setFlights(flightType === 'arrivals' ? MOCK_ARRIVALS : MOCK_DEPARTURES)
+        setLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [airport, flightType])
+
+  const col = {
+    fontFamily: 'var(--font-data)',
+    letterSpacing: '0.04em',
+  }
+
+  const isDepartures = flightType === 'departures'
 
   return (
-    <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '16px 0' }}>
-      {/* Title */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', marginBottom: 10 }}>
-        <span className="card-label">✈ Departures</span>
+    <div className="card" style={{
+      height: '100%', display: 'flex', flexDirection: 'column',
+      padding: 0, overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '16px 20px 10px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 30 }}>✈</span>
+          <span style={{
+            fontFamily: 'var(--font-data)', fontSize: 29, fontWeight: 700,
+            color: 'var(--text-primary)', letterSpacing: '0.02em',
+          }}>Flights</span>
+          {loading && <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>Loading...</span>}
+        </div>
         <span className="card-badge live">Live</span>
       </div>
 
-      {/* Airport tabs */}
-      <div style={{ display: 'flex', gap: 4, padding: '0 16px', marginBottom: 8 }}>
-        {Object.keys(AIRPORTS).map(code => (
+      {/* Departures / Arrivals segmented control */}
+      <div style={{
+        display: 'flex', gap: 2, padding: 4, margin: '0 20px', marginBottom: 8,
+        background: 'linear-gradient(90deg, var(--accent)20, var(--accent-secondary)20)',
+        borderRadius: 8,
+      }}>
+        {['departures', 'arrivals'].map(type => (
+          <button key={type} onClick={() => setFlightType(type)} style={{
+            flex: 1,
+            background: flightType === type
+              ? (type === 'departures' ? 'var(--accent)' : 'var(--accent-secondary)')
+              : 'transparent',
+            color: flightType === type ? '#000' : 'var(--text-primary)',
+            border: 'none', fontFamily: 'var(--font-data)', fontSize: 16,
+            fontWeight: 700, letterSpacing: '0.06em', padding: '7px 0',
+            borderRadius: 8, cursor: 'pointer', textTransform: 'uppercase',
+            transition: 'all 0.2s ease',
+          }}>
+            {type === 'departures' ? '↗ Departures' : '↙ Arrivals'}
+          </button>
+        ))}
+      </div>
+
+      {/* Airport segmented control */}
+      <div style={{
+        display: 'flex', gap: 2, padding: 4, margin: '0 20px', marginBottom: 8,
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: 8,
+      }}>
+        {AIRPORTS.map(code => (
           <button key={code} onClick={() => setAirport(code)} style={{
-            background: airport === code ? 'var(--accent)' : 'var(--bg-elevated)',
-            color: airport === code ? '#000' : 'var(--text-secondary)',
-            border: 'none', fontFamily: 'var(--font-data)', fontSize: 10,
-            fontWeight: 700, letterSpacing: '0.06em', padding: '5px 0',
-            borderRadius: 6, cursor: 'pointer', flex: 1,
+            background: airport === code ? 'var(--accent)' : 'transparent',
+            color: airport === code ? '#000' : 'var(--text-primary)',
+            border: 'none',
+            fontFamily: 'var(--font-data)', fontSize: 16,
+            fontWeight: 700, letterSpacing: '0.06em', padding: '6px 0',
+            borderRadius: 8, cursor: 'pointer', flex: 1,
+            transition: 'all 0.2s ease',
           }}>
             {code}
           </button>
         ))}
       </div>
 
-      {/* Departure rows */}
+      {/* Column headers */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '120px 1fr 1fr 100px 60px 100px',
+        gap: '0 8px',
+        padding: '8px 20px',
+        borderTop: '1px solid var(--border)',
+        borderBottom: '1px solid var(--border)',
+      }}>
+        {['TIME', isDepartures ? 'DESTINATION' : 'ORIGIN', 'AIRLINE', 'FLIGHT', 'GATE', 'STATUS'].map(h => (
+          <span key={h} style={{
+            fontFamily: 'var(--font-data)', fontSize: 12, fontWeight: 700,
+            color: 'var(--text-muted)', letterSpacing: '0.1em',
+          }}>{h}</span>
+        ))}
+      </div>
+
+      {/* Rows */}
       <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-        {info.departures.map((d, i) => (
+        {flights.map((d, i) => (
           <div key={i} style={{
-            padding: '10px 16px',
+            display: 'grid',
+            gridTemplateColumns: '120px 1fr 1fr 100px 60px 100px',
+            gap: '0 8px',
+            padding: '8px 20px',
             borderBottom: '1px solid var(--border)',
-            opacity: d.status === 'GONE' ? 0.3 : 1,
+            opacity: (d.status === 'LANDED') ? 0.35 : 1,
           }}>
-            {/* Top line: time + city + status */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              marginBottom: 3,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{
-                  fontFamily: 'var(--font-data)', fontSize: 13, fontWeight: 700,
-                  color: 'var(--accent)', letterSpacing: '0.02em',
-                }}>
-                  {d.time}
-                </span>
-                <span style={{
-                  fontSize: 13, fontWeight: 700, color: 'var(--text-primary)',
-                }}>
-                  {d.city}
-                </span>
-              </div>
-              <StatusIndicator status={d.status} />
-            </div>
-            {/* Bottom line: flight + dest code + gate */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              fontFamily: 'var(--font-data)', fontSize: 10, color: 'var(--text-muted)',
-              letterSpacing: '0.04em',
-            }}>
-              <span>{d.flight}</span>
-              <span>{d.dest}</span>
-              <span style={{ marginLeft: 'auto' }}>Gate {d.gate}</span>
-            </div>
+            <span style={{ ...col, fontSize: 20, fontWeight: 600, color: 'var(--accent)', whiteSpace: 'nowrap' }}>{d.time}</span>
+            <span style={{ ...col, fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.city}</span>
+            <span style={{ ...col, fontSize: 18, fontWeight: 500, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.airline}</span>
+            <span style={{ ...col, fontSize: 20, fontWeight: 500, color: 'var(--accent)', whiteSpace: 'nowrap' }}>{d.flight}</span>
+            <span style={{ ...col, fontSize: 18, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{d.gate}</span>
+            <span style={{ ...col, fontSize: 18, fontWeight: 700, color: statusColor(d.status), whiteSpace: 'nowrap' }}>{d.status}</span>
           </div>
         ))}
       </div>

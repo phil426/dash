@@ -3,36 +3,28 @@
 import { useState } from 'react'
 
 const sliders = [
-  { key: 'time',    label: 'Time Sensitivity', left: 'No Hurry', right: 'In a Rush',    colors: ['#00cc66', '#ff9500'], defaultVal: 60 },
-  { key: 'temp',    label: 'Temperature',      left: 'Cool',     right: 'Warm',          colors: ['#00b4d8', '#ff3b30'], defaultVal: 50 },
-  { key: 'volume',  label: 'Music Volume',     left: 'Silent',   right: 'High',          colors: ['#818cf8', '#ff9500'], defaultVal: 70 },
-  { key: 'convo',   label: 'Conversation',     left: 'Private',  right: 'Chatty',        colors: ['#00d9a3', '#00cc66'], defaultVal: 40 },
+  { key: 'time',    label: 'Time Sensitivity', left: 'No Hurry', right: 'In a Rush',    colors: ['#00cc66', '#ff9500'], defaultVal: 3 },
+  { key: 'temp',    label: 'Temperature',      left: 'Cool',     right: 'Warm',          colors: ['#00b4d8', '#ff3b30'], defaultVal: 2 },
+  { key: 'volume',  label: 'Music Volume',     left: 'Silent',   right: 'High',          colors: ['#818cf8', '#ff69b4'], defaultVal: 3 },
+  { key: 'convo',   label: 'Conversation',     left: 'Private',  right: 'Chatty',        colors: ['#00d9a3', '#00cc66'], defaultVal: 1 },
 ]
 
-// Segmented gauge bar — like the Prius ECO/PWR indicator
-function SegmentedGauge({ value, colors, onChange }) {
-  const segments = 20
-  const filledCount = Math.round((value / 100) * segments)
+const STEPS = 5
 
+function SegmentedControl({ value, colors, onChange }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 2,
-        height: 10,
-        cursor: 'pointer',
-        padding: '2px 0',
-      }}
-      onClick={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect()
-        const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100)
-        onChange(Math.max(0, Math.min(100, pct)))
-      }}
-    >
-      {Array.from({ length: segments }, (_, i) => {
-        const pct = i / segments
-        const isFilled = i < filledCount
-        // Interpolate color
+    <div style={{
+      display: 'flex',
+      background: `linear-gradient(90deg, ${colors[0]}20, ${colors[1]}20)`,
+      borderRadius: 8,
+      padding: 4,
+      gap: 2,
+    }}>
+      {Array.from({ length: STEPS }, (_, i) => {
+        const pct = i / (STEPS - 1)
+        const isSelected = i === value
+
+        // Interpolate color for selected state
         const r1 = parseInt(colors[0].slice(1, 3), 16)
         const g1 = parseInt(colors[0].slice(3, 5), 16)
         const b1 = parseInt(colors[0].slice(5, 7), 16)
@@ -45,14 +37,23 @@ function SegmentedGauge({ value, colors, onChange }) {
         const color = `rgb(${r}, ${g}, ${b})`
 
         return (
-          <div
+          <button
             key={i}
+            onClick={() => onChange(i)}
             style={{
               flex: 1,
-              borderRadius: 2,
-              background: isFilled ? color : 'rgba(0, 217, 163, 0.06)',
-              boxShadow: isFilled ? `0 0 6px ${color}40` : 'none',
-              transition: 'all 0.15s ease',
+              height: 35,
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              background: isSelected ? color : 'transparent',
+              boxShadow: isSelected ? `0 0 10px ${color}40` : 'none',
+              color: isSelected ? '#000' : 'var(--text-muted)',
+              fontSize: 11,
+              fontFamily: 'var(--font-data)',
+              fontWeight: 700,
+              transition: 'all 0.2s ease',
+              padding: 0,
             }}
           />
         )
@@ -67,29 +68,39 @@ export default function CabinWidget() {
   )
 
   return (
-    <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className="card-header">
-        <span className="card-label">Cabin Comfort</span>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <span className="cabin-label">Cabin Comfort</span>
         <span className="card-badge">Interactive</span>
       </div>
 
-      <div className="cabin-sliders" style={{ flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
         {sliders.map(s => {
           const v = values[s.key]
           return (
-            <div className="cabin-row" key={s.key}>
-              <div className="cabin-row-header">
-                <span className="cabin-row-label">{s.label}</span>
-                <span className="cabin-row-value">{v}%</span>
+            <div key={s.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{
+                  fontSize: 20, fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.08em', color: 'var(--text-primary)',
+                }}>{s.label}</span>
               </div>
-              <SegmentedGauge
+
+              <SegmentedControl
                 value={v}
                 colors={s.colors}
-                onChange={(pct) => setValues(prev => ({ ...prev, [s.key]: pct }))}
+                onChange={(step) => setValues(prev => ({ ...prev, [s.key]: step }))}
               />
-              <div className="cabin-hints">
-                <span className="cabin-hint">{s.left}</span>
-                <span className="cabin-hint">{s.right}</span>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{
+                  fontSize: 13, color: s.colors[0], textTransform: 'uppercase',
+                  letterSpacing: '0.08em', fontWeight: 600,
+                }}>{s.left}</span>
+                <span style={{
+                  fontSize: 13, color: s.colors[1], textTransform: 'uppercase',
+                  letterSpacing: '0.08em', fontWeight: 600,
+                }}>{s.right}</span>
               </div>
             </div>
           )
