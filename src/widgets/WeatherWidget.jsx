@@ -128,22 +128,22 @@ export default function WeatherWidget() {
                 alignItems: 'center',
                 gap: 8,
               }}>
-                <span style={{ ...col, fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>
+                <span style={{ ...col, fontSize: 17, fontWeight: 700, color: 'var(--text-primary)' }}>
                   {city.name.toUpperCase()}
                 </span>
-                <span style={{ ...col, fontSize: 20, fontWeight: 700, color: 'var(--accent)' }}>
+                <span style={{ ...col, fontSize: 17, fontWeight: 700, color: 'var(--accent)' }}>
                   {temp}°
                 </span>
-                <span style={{ fontSize: 22, textAlign: 'center' }}>
+                <span style={{ fontSize: 19, textAlign: 'center' }}>
                   {codeToIcon(code)}
                 </span>
-                <span style={{ ...col, fontSize: 18, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                <span style={{ ...col, fontSize: 15, fontWeight: 500, color: 'var(--text-secondary)' }}>
                   {codeToDesc(code)}
                 </span>
-                <span style={{ ...col, fontSize: 18, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                <span style={{ ...col, fontSize: 15, fontWeight: 500, color: 'var(--text-secondary)' }}>
                   {wind} mph
                 </span>
-                <span style={{ ...col, fontSize: 18, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                <span style={{ ...col, fontSize: 15, fontWeight: 500, color: 'var(--text-secondary)' }}>
                   {humidity}%
                 </span>
               </div>

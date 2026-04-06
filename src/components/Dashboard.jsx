@@ -23,15 +23,19 @@ const TABS = [
 ]
 
 function TabContent({ activeTab }) {
-  switch (activeTab) {
-    case 'music':    return <MusicWidget />
-    case 'map':      return <MapWidget />
-    case 'weather':  return <WeatherWidget />
-    case 'flights':  return <DeparturesWidget />
-    case 'stocks':   return <StocksWidget />
-    case 'survey':   return <SurveyWidget />
-    default:         return <MusicWidget />
-  }
+  return (
+    <>
+      {/* Music always mounted so playback never stops */}
+      <div style={{ display: activeTab === 'music' ? 'block' : 'none', height: '100%' }}>
+        <MusicWidget />
+      </div>
+      {activeTab === 'map' && <MapWidget />}
+      {activeTab === 'weather' && <WeatherWidget />}
+      {activeTab === 'flights' && <DeparturesWidget />}
+      {activeTab === 'stocks' && <StocksWidget />}
+      {activeTab === 'survey' && <SurveyWidget />}
+    </>
+  )
 }
 
 export default function Dashboard() {

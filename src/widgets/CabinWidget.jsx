@@ -81,7 +81,7 @@ export default function CabinWidget() {
             <div key={s.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{
-                  fontSize: 20, fontWeight: 700, textTransform: 'uppercase',
+                  fontSize: 19, fontWeight: 700, textTransform: 'uppercase',
                   letterSpacing: '0.08em', color: 'var(--text-primary)',
                 }}>{s.label}</span>
               </div>
@@ -94,11 +94,11 @@ export default function CabinWidget() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{
-                  fontSize: 13, color: s.colors[0], textTransform: 'uppercase',
+                  fontSize: 12, color: s.colors[0], textTransform: 'uppercase',
                   letterSpacing: '0.08em', fontWeight: 600,
                 }}>{s.left}</span>
                 <span style={{
-                  fontSize: 13, color: s.colors[1], textTransform: 'uppercase',
+                  fontSize: 12, color: s.colors[1], textTransform: 'uppercase',
                   letterSpacing: '0.08em', fontWeight: 600,
                 }}>{s.right}</span>
               </div>
