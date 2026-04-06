@@ -1,3 +1,5 @@
+'use client'
+
 const games = [
   { home: 'GSW', away: 'LAL', homeScore: 112, awayScore: 108, status: 'Final', homeWin: true },
   { home: 'SF 49ers', away: 'SEA', homeScore: 24, awayScore: 10, status: 'Final', homeWin: true },

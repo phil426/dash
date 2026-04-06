@@ -1,3 +1,5 @@
+'use client'
+
 export default function MusicWidget() {
   return (
     <div className="card hero" style={{ height: '100%', padding: 0, display: 'flex', flexDirection: 'column' }}>

@@ -1,3 +1,5 @@
+'use client'
+
 export default function FlightWidget() {
   return (
     <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
