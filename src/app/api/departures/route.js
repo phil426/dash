@@ -44,16 +44,23 @@ export async function GET(request) {
       if (flight.flight_status === 'landed') status = 'LANDED'
       if (flight.flight_status === 'cancelled') status = 'CANCELLED'
 
-      // Extract city from timezone (e.g. "America/Los_Angeles" → "Los Angeles")
+      // Extract city from airport name (e.g. "Denver International" → "DENVER")
       let cityName = 'UNKNOWN'
-      const tz = citySource?.timezone
-      if (tz) {
-        cityName = tz.split('/').pop().replace(/_/g, ' ').toUpperCase()
+      const airportName = citySource?.airport
+      if (airportName) {
+        // Remove common suffixes like "International", "Airport", etc.
+        cityName = airportName
+          .replace(/\s*(International|Intl|Airport|Regional|Metropolitan|Municipal|Memorial|Executive|County|Field)\.?/gi, '')
+          .trim()
+          .toUpperCase()
       }
-      // Fallback to IATA code if timezone parsing gives nothing useful
-      if (!cityName || cityName === 'UNKNOWN') {
+      // Fallback to IATA code
+      if (!cityName || cityName === 'UNKNOWN' || cityName === '') {
         cityName = citySource?.iata || 'UNKNOWN'
       }
+
+      const isPast = (flight.flight_status === 'landed' || flight.flight_status === 'cancelled')
+        || (schedTime && schedTime < new Date())
 
       return {
         time: timeStr,
@@ -64,6 +71,7 @@ export async function GET(request) {
         gate: (type === 'arrivals' ? arr?.gate : dep?.gate) || '--',
         terminal: (type === 'arrivals' ? arr?.terminal : dep?.terminal) || '',
         status,
+        past: isPast,
       }
     })
 

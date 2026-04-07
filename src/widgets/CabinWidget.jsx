@@ -42,7 +42,7 @@ function SegmentedControl({ value, colors, onChange }) {
             onClick={() => onChange(i)}
             style={{
               flex: 1,
-              height: 35,
+              height: 30,
               border: 'none',
               borderRadius: 8,
               cursor: 'pointer',
@@ -69,19 +69,19 @@ export default function CabinWidget() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <span className="cabin-label">Cabin Comfort</span>
         <span className="card-badge">Interactive</span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
         {sliders.map(s => {
           const v = values[s.key]
           return (
-            <div key={s.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div key={s.key} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{
-                  fontSize: 19, fontWeight: 700, textTransform: 'uppercase',
+                  fontSize: 16, fontWeight: 700, textTransform: 'uppercase',
                   letterSpacing: '0.08em', color: 'var(--text-primary)',
                 }}>{s.label}</span>
               </div>

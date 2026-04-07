@@ -157,7 +157,7 @@ export default function DeparturesWidget() {
             gap: '0 8px',
             padding: '8px 20px',
             borderBottom: '1px solid var(--border)',
-            opacity: (d.status === 'LANDED') ? 0.35 : 1,
+            opacity: d.past ? 0.3 : 1,
           }}>
             <span style={{ ...col, fontSize: 15, fontWeight: 600, color: 'var(--accent)', whiteSpace: 'nowrap' }}>{d.time}</span>
             <span style={{ ...col, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.city}</span>

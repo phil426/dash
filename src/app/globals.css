@@ -339,13 +339,13 @@ html, body, #root {
 }
 
 .left-panel-header {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   flex-shrink: 0;
 }
 
 .lp-time {
   font-family: var(--font-data);
-  font-size: 36px;
+  font-size: 30px;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--text-primary);
@@ -355,23 +355,23 @@ html, body, #root {
 }
 
 .lp-date {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-secondary);
   font-weight: 500;
-  margin-top: 4px;
-  margin-bottom: 16px;
+  margin-top: 2px;
+  margin-bottom: 8px;
   text-align: center;
 }
 
 .lp-driver {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .lp-driver-avatar {
-  width: 48px;
-  height: 48px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), #00cc66);
   display: flex;
@@ -380,7 +380,7 @@ html, body, #root {
   color: #000;
   font-family: var(--font-data);
   font-weight: 800;
-  font-size: 18px;
+  font-size: 13px;
   box-shadow: 0 0 12px rgba(0, 217, 163, 0.2);
 }
 
@@ -390,14 +390,14 @@ html, body, #root {
 }
 
 .lp-driver-name {
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
 }
 
 .lp-driver-rating {
-  font-size: 16px;
+  font-size: 11px;
   color: var(--accent);
   font-weight: 600;
 }
@@ -430,7 +430,7 @@ html, body, #root {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 24px;
+  padding: 24px 24px 24px 0;
 }
 
 /* Content fills the area, no card wrapper */
