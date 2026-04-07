@@ -74,6 +74,13 @@ export default function Dashboard() {
 
   return (
     <main className="dash-shell">
+      {/* Version */}
+      <span style={{
+        position: 'fixed', top: 8, right: 12, zIndex: 9999,
+        fontFamily: 'var(--font-data)', fontSize: 10, fontWeight: 500,
+        color: 'var(--text-muted)', opacity: 0.4, letterSpacing: '0.05em',
+        pointerEvents: 'none',
+      }}>v2.1</span>
       {/* ── Left Panel (fixed) ── */}
       <div className="left-panel">
         <div className="left-panel-header">
