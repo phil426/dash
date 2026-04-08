@@ -462,11 +462,11 @@ html, body, #root {
   gap: 2px;
   padding: 4px;
   margin: 0 24px 20px 0;
-  background: linear-gradient(90deg, #00cc6630, #818cf830, #ff69b430, #00d9a330, #ff950030, #00b4d830);
-  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 8px;
   flex-shrink: 0;
-  box-shadow: var(--shadow-glow), 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.03);
 }
 
 .nav-tab {
@@ -478,22 +478,36 @@ html, body, #root {
   justify-content: center;
   gap: 4px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text-muted);
   cursor: pointer;
   transition: var(--transition);
+  position: relative;
 }
 
 .nav-tab:hover {
-  background: var(--bg-card);
+  background: rgba(255,255,255,0.03);
   color: var(--text-secondary);
 }
 
 .nav-tab.active {
-  background: var(--accent);
-  color: #000;
-  box-shadow: 0 0 12px var(--accent-dim);
+  background: rgba(255,255,255,0.04);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--border-light), 0 0 12px rgba(0,0,0,0.2);
+}
+
+/* Gradient underline on active tab */
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-secondary, var(--accent)));
+  box-shadow: 0 0 6px var(--accent);
 }
 
 .nav-tab-icon {
@@ -503,10 +517,15 @@ html, body, #root {
 
 .nav-tab-label {
   font-family: var(--font-data);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+
+.nav-tab.active .nav-tab-label {
+  opacity: 1;
 }
 
 /* ── Card Base ── */
