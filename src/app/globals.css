@@ -329,12 +329,12 @@ html, body, #root {
 
 /* ── Left Panel ── */
 .left-panel {
-  width: 427px;
-  min-width: 427px;
+  width: 400px;
+  min-width: 400px;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  padding: 20px;
   overflow: hidden;
 }
 
@@ -410,7 +410,7 @@ html, body, #root {
   background: var(--bg-card-hover);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 20px;
+  padding: 16px;
   box-shadow: var(--shadow-glow), 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -544,7 +544,7 @@ html, body, #root {
 
 .cabin-label {
   font-family: var(--font);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -576,6 +576,8 @@ html, body, #root {
 /* ── Card Variants ── */
 .card.hero {
   padding: 0;
+  background: transparent;
+  border: none;
 }
 
 .card.compact {
@@ -628,40 +630,12 @@ html, body, #root {
 .map-container .leaflet-container {
   width: 100%;
   height: 100%;
-  background: #000;
+  background: transparent;
 }
 
-/* ── THEMED MAP TILES ──
-   Remove this entire block to revert to default gray map tiles.
-   Each theme tints the neutral CartoDB dark tiles via CSS filters. */
-.map-container .leaflet-tile-pane {
-  filter: saturate(1.5) brightness(1.1);
-  transition: filter 0.5s ease;
-}
-[data-theme="midnight"] .map-container .leaflet-tile-pane {
-  filter: hue-rotate(220deg) saturate(2) brightness(1.1);
-}
-[data-theme="rose"] .map-container .leaflet-tile-pane {
-  filter: hue-rotate(310deg) saturate(2) brightness(1.1);
-}
-[data-theme="amber"] .map-container .leaflet-tile-pane {
-  filter: hue-rotate(35deg) saturate(2.5) brightness(1.2);
-}
-[data-theme="arctic"] .map-container .leaflet-tile-pane {
-  filter: hue-rotate(190deg) saturate(2) brightness(1.15);
-}
-[data-theme="crimson"] .map-container .leaflet-tile-pane {
-  filter: hue-rotate(350deg) saturate(2.5) brightness(1.1);
-}
-[data-theme="lavender"] .map-container .leaflet-tile-pane {
-  filter: hue-rotate(260deg) saturate(2) brightness(1.15);
-}
-[data-theme="emerald"] .map-container .leaflet-tile-pane {
-  filter: hue-rotate(140deg) saturate(2) brightness(1.1);
-}
-[data-theme="sunset"] .map-container .leaflet-tile-pane {
-  filter: hue-rotate(20deg) saturate(2.5) brightness(1.2);
-}
+/* ── MAP TILES ──
+   Styled via Protomaps vector tiles in MapWidget.jsx.
+   No CSS filters needed — colors are set directly per feature. */
 /* ── END THEMED MAP TILES ── */
 
 .map-overlay {

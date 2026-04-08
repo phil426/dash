@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 const sliders = [
   { key: 'time',    label: 'Time Sensitivity', left: 'No Hurry', right: 'In a Rush',    colors: ['#00cc66', '#ff9500'], defaultVal: 3 },
@@ -12,14 +12,47 @@ const sliders = [
 const STEPS = 5
 
 function SegmentedControl({ value, colors, onChange }) {
+  const ref = useRef(null)
+
+  const getStepFromX = (clientX) => {
+    if (!ref.current) return value
+    const rect = ref.current.getBoundingClientRect()
+    const x = clientX - rect.left
+    const step = Math.round((x / rect.width) * (STEPS - 1))
+    return Math.max(0, Math.min(STEPS - 1, step))
+  }
+
+  const handleTouchMove = (e) => {
+    const touch = e.touches[0]
+    onChange(getStepFromX(touch.clientX))
+  }
+
+  const handleMouseDown = () => {
+    const handleMove = (e) => onChange(getStepFromX(e.clientX))
+    const handleUp = () => {
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('mouseup', handleUp)
+    }
+    window.addEventListener('mousemove', handleMove)
+    window.addEventListener('mouseup', handleUp)
+  }
+
   return (
-    <div style={{
-      display: 'flex',
-      background: `linear-gradient(90deg, ${colors[0]}20, ${colors[1]}20)`,
-      borderRadius: 8,
-      padding: 4,
-      gap: 2,
-    }}>
+    <div
+      ref={ref}
+      onTouchMove={handleTouchMove}
+      onTouchStart={(e) => onChange(getStepFromX(e.touches[0].clientX))}
+      onMouseDown={(e) => { onChange(getStepFromX(e.clientX)); handleMouseDown() }}
+      style={{
+        display: 'flex',
+        background: `linear-gradient(90deg, ${colors[0]}20, ${colors[1]}20)`,
+        borderRadius: 8,
+        padding: 3,
+        gap: 2,
+        touchAction: 'none',
+        cursor: 'pointer',
+      }}
+    >
       {Array.from({ length: STEPS }, (_, i) => {
         const pct = i / (STEPS - 1)
         const isSelected = i === value
@@ -37,23 +70,16 @@ function SegmentedControl({ value, colors, onChange }) {
         const color = `rgb(${r}, ${g}, ${b})`
 
         return (
-          <button
+          <div
             key={i}
-            onClick={() => onChange(i)}
             style={{
               flex: 1,
-              height: 30,
-              border: 'none',
+              height: 26,
               borderRadius: 8,
-              cursor: 'pointer',
               background: isSelected ? color : 'transparent',
               boxShadow: isSelected ? `0 0 10px ${color}40` : 'none',
-              color: isSelected ? '#000' : 'var(--text-muted)',
-              fontSize: 11,
-              fontFamily: 'var(--font-data)',
-              fontWeight: 700,
-              transition: 'all 0.2s ease',
-              padding: 0,
+              transition: 'all 0.15s ease',
+              pointerEvents: 'none',
             }}
           />
         )
@@ -69,19 +95,19 @@ export default function CabinWidget() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <span className="cabin-label">Cabin Comfort</span>
         <span className="card-badge">Interactive</span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
         {sliders.map(s => {
           const v = values[s.key]
           return (
             <div key={s.key} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{
-                  fontSize: 16, fontWeight: 700, textTransform: 'uppercase',
+                  fontSize: 14, fontWeight: 700, textTransform: 'uppercase',
                   letterSpacing: '0.08em', color: 'var(--text-primary)',
                 }}>{s.label}</span>
               </div>
@@ -94,11 +120,11 @@ export default function CabinWidget() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{
-                  fontSize: 12, color: s.colors[0], textTransform: 'uppercase',
+                  fontSize: 11, color: s.colors[0], textTransform: 'uppercase',
                   letterSpacing: '0.08em', fontWeight: 600,
                 }}>{s.left}</span>
                 <span style={{
-                  fontSize: 12, color: s.colors[1], textTransform: 'uppercase',
+                  fontSize: 11, color: s.colors[1], textTransform: 'uppercase',
                   letterSpacing: '0.08em', fontWeight: 600,
                 }}>{s.right}</span>
               </div>

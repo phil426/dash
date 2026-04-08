@@ -39,11 +39,28 @@ export async function GET(request) {
         : '--:--'
 
       const delay = timeSource?.delay
+      const now = new Date()
+      const isTimePast = schedTime && schedTime < now
+
+      // Determine status with context awareness
       let status = 'ON TIME'
       if (delay && delay > 15) status = 'DELAYED'
+
+      // API-reported statuses take priority
       if (flight.flight_status === 'active') status = 'EN ROUTE'
-      if (flight.flight_status === 'landed') status = 'LANDED'
-      if (flight.flight_status === 'cancelled') status = 'CANCELLED'
+      else if (flight.flight_status === 'landed') status = 'LANDED'
+      else if (flight.flight_status === 'cancelled') status = 'CANCELLED'
+      // If scheduled time is past but API still says scheduled/unknown, infer status
+      else if (isTimePast) {
+        status = type === 'arrivals' ? 'ARRIVED' : 'DEPARTED'
+      }
+
+      // Staleness safeguard: if API says EN ROUTE but scheduled time is 2+ hours past,
+      // the data is likely stale (common with codeshares) — override status
+      const hoursLate = schedTime ? (now - schedTime) / (1000 * 60 * 60) : 0
+      if (status === 'EN ROUTE' && hoursLate > 2) {
+        status = type === 'arrivals' ? 'ARRIVED' : 'DEPARTED'
+      }
 
       // Extract city from airport name (e.g. "Denver International" → "DENVER")
       let cityName = 'UNKNOWN'
@@ -60,8 +77,7 @@ export async function GET(request) {
         cityName = citySource?.iata || 'UNKNOWN'
       }
 
-      const isPast = (flight.flight_status === 'landed' || flight.flight_status === 'cancelled')
-        || (schedTime && schedTime < new Date())
+      const isPast = ['LANDED', 'CANCELLED', 'DEPARTED', 'ARRIVED'].includes(status) || isTimePast
 
       return {
         time: timeStr,
@@ -76,7 +92,11 @@ export async function GET(request) {
       }
     })
 
-    flights.sort((a, b) => a.time.localeCompare(b.time))
+    // Sort: upcoming flights first (by time), past flights at the bottom
+    flights.sort((a, b) => {
+      if (a.past !== b.past) return a.past ? 1 : -1
+      return a.time.localeCompare(b.time)
+    })
 
     return NextResponse.json({ flights, airport, type })
   } catch (err) {

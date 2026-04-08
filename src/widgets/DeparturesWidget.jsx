@@ -20,7 +20,8 @@ function statusColor(status) {
   if (status === 'EN ROUTE') return 'var(--accent)'          // #00d9a3
   if (status === 'DELAYED') return 'var(--accent-warm)'      // #ff9500
   if (status === 'CANCELLED') return 'var(--accent-red)'     // #ff3b30
-  if (status === 'LANDED') return 'var(--text-secondary)'    // #6a9e94
+  if (status === 'LANDED' || status === 'ARRIVED') return 'var(--text-secondary)'
+  if (status === 'DEPARTED') return 'var(--text-secondary)'
   return 'var(--accent-green)'                                // #00cc66 ON TIME
 }
 
