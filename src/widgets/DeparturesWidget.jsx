@@ -134,13 +134,13 @@ export default function DeparturesWidget() {
       {/* Column headers */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '120px 1fr 1fr 100px 60px 100px',
-        gap: '0 8px',
-        padding: '8px 20px',
+        gridTemplateColumns: '80px 50px 1fr 70px 40px 75px',
+        gap: '0 2px',
+        padding: '8px 10px',
         borderTop: '1px solid var(--border)',
         borderBottom: '1px solid var(--border)',
       }}>
-        {['TIME', isDepartures ? 'DESTINATION' : 'ORIGIN', 'AIRLINE', 'FLIGHT', 'GATE', 'STATUS'].map(h => (
+        {['TIME', isDepartures ? 'DEST' : 'ORIGIN', 'AIRLINE', 'FLIGHT', 'GATE', 'STATUS'].map(h => (
           <span key={h} style={{
             fontFamily: 'var(--font-data)', fontSize: 9, fontWeight: 700,
             color: 'var(--text-muted)', letterSpacing: '0.1em',
@@ -153,14 +153,14 @@ export default function DeparturesWidget() {
         {flights.map((d, i) => (
           <div key={i} style={{
             display: 'grid',
-            gridTemplateColumns: '120px 1fr 1fr 100px 60px 100px',
-            gap: '0 8px',
-            padding: '8px 20px',
+            gridTemplateColumns: '80px 50px 1fr 70px 40px 75px',
+            gap: '0 2px',
+            padding: '8px 10px',
             borderBottom: '1px solid var(--border)',
             opacity: d.past ? 0.3 : 1,
           }}>
             <span style={{ ...col, fontSize: 15, fontWeight: 600, color: 'var(--accent)', whiteSpace: 'nowrap' }}>{d.time}</span>
-            <span style={{ ...col, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.city}</span>
+            <span style={{ ...col, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.dest}</span>
             <span style={{ ...col, fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.airline}</span>
             <span style={{ ...col, fontSize: 15, fontWeight: 500, color: 'var(--accent)', whiteSpace: 'nowrap' }}>{d.flight}</span>
             <span style={{ ...col, fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{d.gate}</span>

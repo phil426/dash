@@ -34,7 +34,8 @@ export async function GET(request) {
 
       const schedTime = timeSource?.scheduled ? new Date(timeSource.scheduled) : null
       const timeStr = schedTime
-        ? schedTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Los_Angeles' }).toUpperCase()
+        ? schedTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Los_Angeles' })
+            .replace(/\s?(AM|PM)/i, (_, m) => m[0].toLowerCase())
         : '--:--'
 
       const delay = timeSource?.delay
