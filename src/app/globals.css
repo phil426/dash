@@ -457,61 +457,49 @@ html, body, #root {
 /* ── Nav Tabs — cabin comfort style ── */
 .nav-tabs {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
+  align-items: stretch;
+  gap: 3px;
   padding: 4px;
   margin: 0 24px 20px 0;
-  background: rgba(255,255,255,0.02);
+  background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   flex-shrink: 0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.03);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
 }
 
 .nav-tab {
   flex: 1;
-  height: 54px;
+  height: 50px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition);
   position: relative;
+  opacity: 0.6;
 }
 
 .nav-tab:hover {
+  opacity: 0.85;
   background: rgba(255,255,255,0.03);
-  color: var(--text-secondary);
 }
 
 .nav-tab.active {
-  background: rgba(255,255,255,0.04);
-  color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--border-light), 0 0 12px rgba(0,0,0,0.2);
-}
-
-/* Gradient underline on active tab */
-.nav-tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: 6px;
-  left: 20%;
-  right: 20%;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-secondary, var(--accent)));
-  box-shadow: 0 0 6px var(--accent);
+  background: var(--accent);
+  color: #000;
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
 .nav-tab-icon {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
 }
 
@@ -520,12 +508,11 @@ html, body, #root {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.6;
+  letter-spacing: 0.08em;
 }
 
 .nav-tab.active .nav-tab-label {
-  opacity: 1;
+  color: #000;
 }
 
 /* ── Card Base ── */
