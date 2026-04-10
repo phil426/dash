@@ -37,8 +37,8 @@ export default function useSpotify() {
   )
 
   const fetchCurrentlyPlaying = useCallback(async () => {
-    // /me/player gives broader context, but currently-playing is usually faster for simple display
-    const data = await fetchSpotifyObj('/me/player/currently-playing')
+    // /me/player gives broader context (including podcasts) and is more robust than currently-playing
+    const data = await fetchSpotifyObj('/me/player?additional_types=track,episode')
     if (data && data.item) {
       setCurrentTrack(data.item)
       setIsPlaying(data.is_playing)
@@ -46,6 +46,7 @@ export default function useSpotify() {
     } else {
       // Nothing is playing or private session
       setIsPlaying(false)
+      setCurrentTrack(null)
     }
   }, [fetchSpotifyObj])
 

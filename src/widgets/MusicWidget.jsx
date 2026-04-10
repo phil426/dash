@@ -70,9 +70,16 @@ export default function MusicWidget() {
   }
 
   // 3) Active playback
-  const imgUrl = currentTrack.album?.images?.[0]?.url || ''
-  const artistName = currentTrack.artists?.map(a => a.name).join(', ') || 'Unknown Artist'
-  const title = currentTrack.name || 'Unknown Track'
+  const isPodcast = currentTrack.type === 'episode'
+  const imgUrl = isPodcast 
+    ? currentTrack.show?.images?.[0]?.url || '' 
+    : currentTrack.album?.images?.[0]?.url || ''
+  
+  const artistName = isPodcast
+    ? currentTrack.show?.publisher || 'Unknown Publisher'
+    : currentTrack.artists?.map(a => a.name).join(', ') || 'Unknown Artist'
+    
+  const title = currentTrack.name || (isPodcast ? 'Unknown Episode' : 'Unknown Track')
 
   return (
     <div className="card" style={{ 
