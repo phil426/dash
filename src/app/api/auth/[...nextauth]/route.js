@@ -6,7 +6,7 @@ const scopes = [
   "user-modify-playback-state",
   "user-read-currently-playing",
   "streaming",
-].join(",");
+].join(" ");
 
 const SPOTIFY_AUTHORIZATION_URL =
   "https://accounts.spotify.com/authorize?" +
