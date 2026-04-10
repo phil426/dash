@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import { signIn } from 'next-auth/react'
-import { Play, Pause, SkipBack, SkipForward, Music } from 'lucide-react'
+import { signIn, signOut } from 'next-auth/react'
+import { Play, Pause, SkipBack, SkipForward, Music, LogOut } from 'lucide-react'
 import useSpotify from '../hooks/useSpotify'
 
 export default function MusicWidget() {
@@ -56,7 +56,12 @@ export default function MusicWidget() {
   // 2) Logged in but no active track playing
   if (!currentTrack) {
     return (
-      <div className="card" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
+      <div className="card" style={{ height: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
+        <button 
+          onClick={() => signOut()}
+          style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', padding: 8 }}>
+          <LogOut size={16} />
+        </button>
         <p style={{ fontFamily: 'var(--font-data)', color: 'var(--text-muted)', fontSize: 14 }}>
           Open Spotify on a device to start controlling playback.
         </p>
@@ -99,6 +104,12 @@ export default function MusicWidget() {
         justifyContent: 'space-between'
       }}>
         
+        <button 
+          onClick={() => signOut()}
+          style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 8, zIndex: 10 }}>
+          <LogOut size={16} />
+        </button>
+
         {/* Top: Album Art + Meta */}
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
           {imgUrl ? (
