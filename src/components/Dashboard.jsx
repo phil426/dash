@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { PiMusicNoteFill, PiMapPinFill, PiCloudSunFill, PiAirplaneTiltFill, PiChartLineUpFill, PiClipboardTextFill } from 'react-icons/pi'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import WeatherWidget from '../widgets/WeatherWidget'
 import MusicWidget from '../widgets/MusicWidget'
 import CabinWidget from '../widgets/CabinWidget'
@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [time, setTime] = useState(new Date())
   const [theme, setTheme] = useState('default')
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const THEMES = [
     { id: 'default',  label: 'Prius',        color: '#00d9a3' },
@@ -81,8 +82,8 @@ export default function Dashboard() {
         color: 'var(--text-muted)', opacity: 0.4, letterSpacing: '0.05em',
         pointerEvents: 'none',
       }}>v2.1</span>
-      {/* ── Left Panel (fixed) ── */}
-      <div className="left-panel">
+      {/* ── Left Panel (collapsible) ── */}
+      <div className={`left-panel ${sidebarOpen ? '' : 'collapsed'}`}>
         <div className="left-panel-header">
           <div className="lp-time">{timeStr}</div>
           <div className="lp-date">{dateStr}</div>
@@ -98,6 +99,15 @@ export default function Dashboard() {
         <div className="left-panel-cabin">
           <CabinWidget />
         </div>
+
+        {/* Collapse / Expand toggle */}
+        <button
+          className="sidebar-toggle"
+          onClick={() => setSidebarOpen(p => !p)}
+          title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+        </button>
       </div>
 
       {/* ── Right Panel ── */}

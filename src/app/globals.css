@@ -336,6 +336,61 @@ html, body, #root {
   flex-direction: column;
   padding: 20px;
   overflow: hidden;
+  transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+  position: relative;
+}
+
+.left-panel.collapsed {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.left-panel.collapsed .left-panel-header,
+.left-panel.collapsed .left-panel-cabin {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.left-panel .left-panel-header,
+.left-panel .left-panel-cabin {
+  opacity: 1;
+  transition: opacity 0.2s ease 0.15s;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.sidebar-toggle:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-dim);
+}
+
+.left-panel.collapsed .sidebar-toggle {
+  position: fixed;
+  left: 8px;
+  bottom: 20px;
+  right: auto;
 }
 
 .left-panel-header {
