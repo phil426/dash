@@ -387,9 +387,9 @@ export default function MusicWidget() {
                         }}>
                         {syncedLyrics.map((line, i) => (
                           <div key={i} style={{
-                            fontFamily: 'var(--font)', fontSize: i === currentLineIndex ? 18 : 14,
+                            fontFamily: 'var(--font)', fontSize: i === currentLineIndex ? 24 : 19,
                             fontWeight: i === currentLineIndex ? 700 : 400,
-                            color: i === currentLineIndex ? '#fff' : 'rgba(255,255,255,0.4)',
+                            color: i === currentLineIndex ? '#fff' : 'rgba(255,255,255,0.55)',
                             textAlign: 'left', paddingLeft: 24, paddingRight: 12, paddingTop: 5, paddingBottom: 5,
                             transition: 'all 0.3s ease',
                             transform: i === currentLineIndex ? 'scale(1.02)' : 'scale(1)',
