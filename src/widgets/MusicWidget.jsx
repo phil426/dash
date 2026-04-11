@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { signIn, signOut } from 'next-auth/react'
-import { Play, Pause, SkipBack, SkipForward, Music, LogOut, Shuffle, Repeat, Volume2, Repeat1, ChevronLeft, Mic2 } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Music, LogOut, Shuffle, Repeat, Repeat1, ChevronLeft, Mic2 } from 'lucide-react'
 import useSpotify from '../hooks/useSpotify'
 
 function formatMs(ms) {
@@ -10,6 +10,71 @@ function formatMs(ms) {
   const m = Math.floor(s / 60)
   const sec = s % 60
   return `${m}:${sec.toString().padStart(2, '0')}`
+}
+
+/* ── Vertical Pill Slider (matches CabinWidget style) ── */
+function VerticalVolumeSlider({ value, onChange }) {
+  const ref = useRef(null)
+  const PILL_H = 40
+  const TRACK_W = 36
+
+  const calc = (y) => {
+    if (!ref.current) return
+    const r = ref.current.getBoundingClientRect()
+    // Invert: top = 100, bottom = 0
+    const pct = 1 - Math.max(0, Math.min(1, (y - r.top - PILL_H / 2) / (r.height - PILL_H)))
+    onChange(Math.round(pct * 100))
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+      <span style={{ fontFamily: 'var(--font)', fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1 }}>Vol</span>
+      <div
+        ref={ref}
+        onPointerDown={(e) => { e.preventDefault(); ref.current.setPointerCapture(e.pointerId); calc(e.clientY) }}
+        onPointerMove={(e) => { if (ref.current?.hasPointerCapture(e.pointerId)) calc(e.clientY) }}
+        onPointerUp={(e) => ref.current?.releasePointerCapture(e.pointerId)}
+        onPointerCancel={(e) => ref.current?.releasePointerCapture(e.pointerId)}
+        style={{
+          position: 'relative',
+          width: TRACK_W,
+          flex: 1,
+          minHeight: 120,
+          borderRadius: 8,
+          background: 'rgba(255,255,255,0.04)',
+          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)',
+          touchAction: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        {/* Fill from bottom */}
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: `${value}%`,
+          borderRadius: 8,
+          background: 'rgba(255,255,255,0.06)',
+          pointerEvents: 'none',
+        }} />
+        {/* Pill thumb */}
+        <div style={{
+          position: 'absolute',
+          left: 4,
+          bottom: `calc((100% - ${PILL_H}px) * ${value / 100})`,
+          width: TRACK_W - 8,
+          height: PILL_H,
+          borderRadius: 6,
+          background: '#fff',
+          boxShadow: '0 2px 8px rgba(255,255,255,0.3)',
+          transition: 'bottom 0.05s linear',
+          pointerEvents: 'none',
+        }} />
+      </div>
+      <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{value}%</span>
+    </div>
+  )
 }
 
 export default function MusicWidget() {
@@ -24,10 +89,8 @@ export default function MusicWidget() {
   const [playlistTracks, setPlaylistTracks] = useState([])
   const [loadingTracks, setLoadingTracks] = useState(false)
   const [showLyrics, setShowLyrics] = useState(false)
-  const volumeRef = useRef(null)
   const lyricsContainerRef = useRef(null)
 
-  // Find current lyric line index (500ms lookahead for karaoke feel)
   const currentLineIndex = useMemo(() => {
     if (!syncedLyrics.length || syncedLyrics[0].time === -1) return -1
     const adjustedProgress = progressMs + 500
@@ -39,7 +102,6 @@ export default function MusicWidget() {
     return idx
   }, [syncedLyrics, progressMs])
 
-  // Auto-scroll lyrics
   useEffect(() => {
     if (!lyricsContainerRef.current || currentLineIndex < 0) return
     const activeLine = lyricsContainerRef.current.children[currentLineIndex]
@@ -262,143 +324,134 @@ export default function MusicWidget() {
 
           {/* NOW PLAYING */}
           {activeTab === 'now-playing' && (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: showLyrics ? 'flex-start' : 'center', padding: '8px 28px 16px', overflow: 'hidden' }}>
-              {!currentTrack ? (
-                <div style={{ margin: 'auto', textAlign: 'center' }}>
-                  <Music size={32} style={{ color: 'rgba(255,255,255,0.15)', marginBottom: 16 }} />
-                  <p style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
-                    Open Spotify on a device<br />to start controlling playback.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Album Art - full when no lyrics */}
-                  {!showLyrics && (
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20, flexShrink: 0 }}>
-                      {imgUrl && <img src={imgUrl} alt="" style={{ width: '50%', maxWidth: 180, aspectRatio: '1', borderRadius: 14, boxShadow: '0 16px 48px rgba(0,0,0,0.6)', objectFit: 'cover' }} />}
-                    </div>
-                  )}
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-                  {/* Compact art when lyrics showing */}
-                  {showLyrics && imgUrl && (
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, flexShrink: 0 }}>
-                      <img src={imgUrl} alt="" style={{ width: 44, height: 44, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.4)', objectFit: 'cover' }} />
-                    </div>
-                  )}
-
-                  {/* Title / Artist */}
-                  <div style={{ textAlign: 'center', marginBottom: showLyrics ? 6 : 14, overflow: 'hidden', flexShrink: 0 }}>
-                    <div style={{ fontFamily: 'var(--font)', fontWeight: 700, fontSize: showLyrics ? 15 : 20, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.5)', marginBottom: 3, transition: 'font-size 0.3s' }}>
-                      {title}
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-data)', fontSize: showLyrics ? 12 : 14, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'font-size 0.3s' }}>
-                      {artistName}
-                    </div>
-                    {!showLyrics && albumName && (
-                      <div style={{ fontFamily: 'var(--font-data)', fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {albumName}
+              {/* Left: Main player content */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: showLyrics ? 'flex-start' : 'center', padding: '8px 20px 16px 28px', overflow: 'hidden' }}>
+                {!currentTrack ? (
+                  <div style={{ margin: 'auto', textAlign: 'center' }}>
+                    <Music size={32} style={{ color: 'rgba(255,255,255,0.15)', marginBottom: 16 }} />
+                    <p style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
+                      Open Spotify on a device<br />to start controlling playback.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Album Art - full when no lyrics */}
+                    {!showLyrics && (
+                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20, flexShrink: 0 }}>
+                        {imgUrl && <img src={imgUrl} alt="" style={{ width: '50%', maxWidth: 180, aspectRatio: '1', borderRadius: 14, boxShadow: '0 16px 48px rgba(0,0,0,0.6)', objectFit: 'cover' }} />}
                       </div>
                     )}
-                  </div>
 
-                  {/* Karaoke Lyrics */}
-                  {showLyrics && syncedLyrics.length > 0 && (
-                    <div ref={lyricsContainerRef}
-                      style={{
-                        flex: 1, overflowY: 'auto', marginBottom: 8, padding: '8px 4px',
-                        maskImage: 'linear-gradient(transparent 0%, black 12%, black 88%, transparent 100%)',
-                        WebkitMaskImage: 'linear-gradient(transparent 0%, black 12%, black 88%, transparent 100%)',
-                        scrollbarWidth: 'none',
-                      }}>
-                      {syncedLyrics.map((line, i) => (
-                        <div key={i} style={{
-                          fontFamily: 'var(--font)', fontSize: i === currentLineIndex ? 18 : 14,
-                          fontWeight: i === currentLineIndex ? 700 : 400,
-                          color: i === currentLineIndex ? '#fff' : 'rgba(255,255,255,0.2)',
-                          textAlign: 'center', padding: '5px 8px', transition: 'all 0.3s ease',
-                          transform: i === currentLineIndex ? 'scale(1.02)' : 'scale(1)',
-                          minHeight: line.text ? 'auto' : 20,
-                        }}>
-                          {line.text || '\u266a'}
+                    {/* Compact art when lyrics showing */}
+                    {showLyrics && imgUrl && (
+                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, flexShrink: 0 }}>
+                        <img src={imgUrl} alt="" style={{ width: 44, height: 44, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.4)', objectFit: 'cover' }} />
+                      </div>
+                    )}
+
+                    {/* Title / Artist */}
+                    <div style={{ textAlign: 'center', marginBottom: showLyrics ? 6 : 14, overflow: 'hidden', flexShrink: 0 }}>
+                      <div style={{ fontFamily: 'var(--font)', fontWeight: 700, fontSize: showLyrics ? 15 : 20, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.5)', marginBottom: 3, transition: 'font-size 0.3s' }}>
+                        {title}
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-data)', fontSize: showLyrics ? 12 : 14, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'font-size 0.3s' }}>
+                        {artistName}
+                      </div>
+                      {!showLyrics && albumName && (
+                        <div style={{ fontFamily: 'var(--font-data)', fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {albumName}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
 
-                  {showLyrics && syncedLyrics.length === 0 && (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div style={{ fontFamily: 'var(--font-data)', fontSize: 13, color: 'rgba(255,255,255,0.15)', textAlign: 'center' }}>No lyrics available</div>
+                    {/* Karaoke Lyrics */}
+                    {showLyrics && syncedLyrics.length > 0 && (
+                      <div ref={lyricsContainerRef}
+                        style={{
+                          flex: 1, overflowY: 'auto', marginBottom: 8, padding: '8px 4px',
+                          maskImage: 'linear-gradient(transparent 0%, black 12%, black 88%, transparent 100%)',
+                          WebkitMaskImage: 'linear-gradient(transparent 0%, black 12%, black 88%, transparent 100%)',
+                          scrollbarWidth: 'none',
+                        }}>
+                        {syncedLyrics.map((line, i) => (
+                          <div key={i} style={{
+                            fontFamily: 'var(--font)', fontSize: i === currentLineIndex ? 18 : 14,
+                            fontWeight: i === currentLineIndex ? 700 : 400,
+                            color: i === currentLineIndex ? '#fff' : 'rgba(255,255,255,0.2)',
+                            textAlign: 'center', padding: '5px 8px', transition: 'all 0.3s ease',
+                            transform: i === currentLineIndex ? 'scale(1.02)' : 'scale(1)',
+                            minHeight: line.text ? 'auto' : 20,
+                          }}>
+                            {line.text || '\u266a'}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {showLyrics && syncedLyrics.length === 0 && (
+                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ fontFamily: 'var(--font-data)', fontSize: 13, color: 'rgba(255,255,255,0.15)', textAlign: 'center' }}>No lyrics available</div>
+                      </div>
+                    )}
+
+                    {/* Progress Bar */}
+                    <div style={{ marginBottom: 14, flexShrink: 0 }}>
+                      <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${progress}%`, background: '#fff', borderRadius: 2, transition: 'width 1s linear' }} />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
+                        <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{formatMs(progressMs)}</span>
+                        <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{formatMs(durationMs)}</span>
+                      </div>
                     </div>
-                  )}
 
-                  {/* Progress Bar */}
-                  <div style={{ marginBottom: 14, flexShrink: 0 }}>
-                    <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${progress}%`, background: '#fff', borderRadius: 2, transition: 'width 1s linear' }} />
+                    {/* Transport Controls - centered */}
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                      <button onClick={toggleShuffle} style={iconBtn(isShuffle ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
+                        <Shuffle size={20} />
+                      </button>
+
+                      <button onClick={previous} style={iconBtn('rgba(255,255,255,0.7)')}>
+                        <SkipBack size={28} fill="currentColor" />
+                      </button>
+
+                      <button onClick={togglePlay}
+                        style={{
+                          width: 56, height: 56, borderRadius: '50%',
+                          background: '#fff', color: '#000', border: 'none',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          cursor: 'pointer', boxShadow: '0 6px 24px rgba(0,0,0,0.4)',
+                          transition: 'transform 0.15s', margin: '0 6px'
+                        }}
+                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.08)'}
+                        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                      >
+                        {isPlaying ? <Pause size={26} fill="currentColor" /> : <Play size={26} fill="currentColor" style={{ marginLeft: 3 }} />}
+                      </button>
+
+                      <button onClick={next} style={iconBtn('rgba(255,255,255,0.7)')}>
+                        <SkipForward size={28} fill="currentColor" />
+                      </button>
+
+                      <button onClick={toggleRepeat} style={iconBtn(repeatState !== 'off' ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
+                        {repeatState === 'track' ? <Repeat1 size={20} /> : <Repeat size={20} />}
+                      </button>
+
+                      <button onClick={() => setShowLyrics(prev => !prev)} style={iconBtn(showLyrics ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
+                        <Mic2 size={20} />
+                      </button>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-                      <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{formatMs(progressMs)}</span>
-                      <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{formatMs(durationMs)}</span>
-                    </div>
-                  </div>
+                  </>
+                )}
+              </div>
 
-                  {/* Transport Controls - BIGGER */}
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginBottom: 10, flexShrink: 0 }}>
-                    <button onClick={toggleShuffle} style={iconBtn(isShuffle ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
-                      <Shuffle size={22} />
-                    </button>
-
-                    <button onClick={previous} style={iconBtn('rgba(255,255,255,0.7)')}>
-                      <SkipBack size={30} fill="currentColor" />
-                    </button>
-
-                    <button onClick={togglePlay}
-                      style={{
-                        width: 60, height: 60, borderRadius: '50%',
-                        background: '#fff', color: '#000', border: 'none',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', boxShadow: '0 6px 24px rgba(0,0,0,0.4)',
-                        transition: 'transform 0.15s', margin: '0 8px'
-                      }}
-                      onMouseOver={e => e.currentTarget.style.transform = 'scale(1.08)'}
-                      onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                      {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" style={{ marginLeft: 3 }} />}
-                    </button>
-
-                    <button onClick={next} style={iconBtn('rgba(255,255,255,0.7)')}>
-                      <SkipForward size={30} fill="currentColor" />
-                    </button>
-
-                    <button onClick={toggleRepeat} style={iconBtn(repeatState !== 'off' ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
-                      {repeatState === 'track' ? <Repeat1 size={22} /> : <Repeat size={22} />}
-                    </button>
-
-                    <button onClick={() => setShowLyrics(prev => !prev)} style={iconBtn(showLyrics ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
-                      <Mic2 size={22} />
-                    </button>
-                  </div>
-
-                  {/* Volume Slider */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 4px', flexShrink: 0 }}>
-                    <Volume2 size={16} style={{ color: 'rgba(255,255,255,0.35)', flexShrink: 0 }} />
-                    <div ref={volumeRef}
-                      onClick={(e) => {
-                        const rect = e.currentTarget.getBoundingClientRect()
-                        const percent = Math.round(((e.clientX - rect.left) / rect.width) * 100)
-                        setVolume(percent)
-                      }}
-                      style={{ flex: 1, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.1)', cursor: 'pointer', position: 'relative' }}
-                    >
-                      <div style={{ height: '100%', width: `${volume}%`, background: 'rgba(255,255,255,0.5)', borderRadius: 2, transition: 'width 0.15s' }} />
-                      <div style={{
-                        position: 'absolute', top: '50%', left: `${volume}%`, transform: 'translate(-50%, -50%)',
-                        width: 12, height: 12, borderRadius: '50%', background: '#fff',
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.3)', transition: 'left 0.15s'
-                      }} />
-                    </div>
-                  </div>
-                </>
+              {/* Right: Vertical Volume Slider */}
+              {currentTrack && (
+                <div style={{ width: 56, flexShrink: 0, padding: '12px 10px 16px 0', display: 'flex' }}>
+                  <VerticalVolumeSlider value={volume} onChange={setVolume} />
+                </div>
               )}
             </div>
           )}
