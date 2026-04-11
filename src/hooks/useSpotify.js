@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 
 export default function useSpotify() {
@@ -6,9 +6,12 @@ export default function useSpotify() {
   const [currentTrack, setCurrentTrack] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [progressMs, setProgressMs] = useState(0)
+  const [durationMs, setDurationMs] = useState(0)
   const [playlists, setPlaylists] = useState([])
   const [isShuffle, setIsShuffle] = useState(false)
   const [repeatState, setRepeatState] = useState('off') // 'off', 'track', 'context'
+  const [volume, setVolumeState] = useState(50)
+  const playlistsFetched = useRef(false)
 
   // A generic fetch wrapper for Spotify API
   const fetchSpotifyObj = useCallback(
@@ -26,7 +29,14 @@ export default function useSpotify() {
         })
         
         // 204 No Content typically returned for playback commands
-        if (res.status === 204 || res.status > 400) {
+        if (res.status === 204) {
+          return null
+        }
+
+        // Handle errors gracefully
+        if (res.status >= 400) {
+          const err = await res.json().catch(() => null)
+          console.warn('Spotify API error:', res.status, err)
           return null
         }
         
@@ -40,37 +50,39 @@ export default function useSpotify() {
   )
 
   const fetchCurrentlyPlaying = useCallback(async () => {
-    // /me/player gives broader context (including podcasts) and is more robust than currently-playing
     const data = await fetchSpotifyObj('/me/player?additional_types=track,episode')
     if (data && data.item) {
       setCurrentTrack(data.item)
       setIsPlaying(data.is_playing)
       setProgressMs(data.progress_ms)
+      setDurationMs(data.item.duration_ms || 0)
       setIsShuffle(data.shuffle_state)
       setRepeatState(data.repeat_state)
+      if (data.device) {
+        setVolumeState(data.device.volume_percent)
+      }
     } else {
-      // Nothing is playing or private session
       setIsPlaying(false)
       setCurrentTrack(null)
     }
   }, [fetchSpotifyObj])
 
   const fetchPlaylists = useCallback(async () => {
-    const data = await fetchSpotifyObj('/me/playlists?limit=20')
+    if (playlistsFetched.current) return
+    const data = await fetchSpotifyObj('/me/playlists?limit=30')
     if (data && data.items) {
-      setPlaylists(data.items)
+      setPlaylists(data.items.filter(Boolean))
+      playlistsFetched.current = true
     }
   }, [fetchSpotifyObj])
 
   useEffect(() => {
     if (!session) return
 
-    // Initial fetch
     fetchCurrentlyPlaying()
     fetchPlaylists()
 
-    // Poll every 1.5s to keep UI somewhat in sync
-    const interval = setInterval(fetchCurrentlyPlaying, 1500)
+    const interval = setInterval(fetchCurrentlyPlaying, 2000)
     return () => clearInterval(interval)
   }, [session, fetchCurrentlyPlaying, fetchPlaylists])
 
@@ -92,11 +104,16 @@ export default function useSpotify() {
     fetchSpotifyObj(`/me/player/repeat?state=${nextState}`, 'PUT')
     setRepeatState(nextState)
   }
+
+  const setVolume = (percent) => {
+    const clamped = Math.max(0, Math.min(100, Math.round(percent)))
+    fetchSpotifyObj(`/me/player/volume?volume_percent=${clamped}`, 'PUT')
+    setVolumeState(clamped)
+  }
   
   const togglePlay = () => {
     if (isPlaying) pause()
     else play()
-    // Optimistic UI update
     setIsPlaying(!isPlaying)
   }
 
@@ -104,9 +121,11 @@ export default function useSpotify() {
     currentTrack,
     isPlaying,
     progressMs,
+    durationMs,
     playlists,
     isShuffle,
     repeatState,
+    volume,
     play,
     pause,
     next,
@@ -114,6 +133,7 @@ export default function useSpotify() {
     togglePlay,
     toggleShuffle,
     toggleRepeat,
+    setVolume,
     session
   }
 }
