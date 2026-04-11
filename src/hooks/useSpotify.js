@@ -6,6 +6,9 @@ export default function useSpotify() {
   const [currentTrack, setCurrentTrack] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [progressMs, setProgressMs] = useState(0)
+  const [playlists, setPlaylists] = useState([])
+  const [isShuffle, setIsShuffle] = useState(false)
+  const [repeatState, setRepeatState] = useState('off') // 'off', 'track', 'context'
 
   // A generic fetch wrapper for Spotify API
   const fetchSpotifyObj = useCallback(
@@ -43,10 +46,19 @@ export default function useSpotify() {
       setCurrentTrack(data.item)
       setIsPlaying(data.is_playing)
       setProgressMs(data.progress_ms)
+      setIsShuffle(data.shuffle_state)
+      setRepeatState(data.repeat_state)
     } else {
       // Nothing is playing or private session
       setIsPlaying(false)
       setCurrentTrack(null)
+    }
+  }, [fetchSpotifyObj])
+
+  const fetchPlaylists = useCallback(async () => {
+    const data = await fetchSpotifyObj('/me/playlists?limit=20')
+    if (data && data.items) {
+      setPlaylists(data.items)
     }
   }, [fetchSpotifyObj])
 
@@ -55,16 +67,31 @@ export default function useSpotify() {
 
     // Initial fetch
     fetchCurrentlyPlaying()
+    fetchPlaylists()
 
     // Poll every 1.5s to keep UI somewhat in sync
     const interval = setInterval(fetchCurrentlyPlaying, 1500)
     return () => clearInterval(interval)
-  }, [session, fetchCurrentlyPlaying])
+  }, [session, fetchCurrentlyPlaying, fetchPlaylists])
 
-  const play = () => fetchSpotifyObj('/me/player/play', 'PUT')
+  const play = (contextUri = null) => {
+    const body = contextUri ? { context_uri: contextUri } : null
+    return fetchSpotifyObj('/me/player/play', 'PUT', body)
+  }
   const pause = () => fetchSpotifyObj('/me/player/pause', 'PUT')
   const next = () => fetchSpotifyObj('/me/player/next', 'POST')
   const previous = () => fetchSpotifyObj('/me/player/previous', 'POST')
+  
+  const toggleShuffle = () => {
+    fetchSpotifyObj(`/me/player/shuffle?state=${!isShuffle}`, 'PUT')
+    setIsShuffle(!isShuffle)
+  }
+
+  const toggleRepeat = () => {
+    const nextState = repeatState === 'off' ? 'context' : repeatState === 'context' ? 'track' : 'off'
+    fetchSpotifyObj(`/me/player/repeat?state=${nextState}`, 'PUT')
+    setRepeatState(nextState)
+  }
   
   const togglePlay = () => {
     if (isPlaying) pause()
@@ -77,11 +104,16 @@ export default function useSpotify() {
     currentTrack,
     isPlaying,
     progressMs,
+    playlists,
+    isShuffle,
+    repeatState,
     play,
     pause,
     next,
     previous,
     togglePlay,
+    toggleShuffle,
+    toggleRepeat,
     session
   }
 }
