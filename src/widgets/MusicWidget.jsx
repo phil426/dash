@@ -15,20 +15,19 @@ function formatMs(ms) {
 /* ── Vertical Pill Slider (matches CabinWidget style) ── */
 function VerticalVolumeSlider({ value, onChange }) {
   const ref = useRef(null)
-  const PILL_H = 40
-  const TRACK_W = 36
+  const PILL_H = 44
+  const TRACK_W = 44
 
   const calc = (y) => {
     if (!ref.current) return
     const r = ref.current.getBoundingClientRect()
-    // Invert: top = 100, bottom = 0
     const pct = 1 - Math.max(0, Math.min(1, (y - r.top - PILL_H / 2) / (r.height - PILL_H)))
     onChange(Math.round(pct * 100))
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontFamily: 'var(--font)', fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1 }}>Vol</span>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+      <span style={{ fontFamily: 'var(--font)', fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 1.5 }}>Vol</span>
       <div
         ref={ref}
         onPointerDown={(e) => { e.preventDefault(); ref.current.setPointerCapture(e.pointerId); calc(e.clientY) }}
@@ -40,9 +39,10 @@ function VerticalVolumeSlider({ value, onChange }) {
           width: TRACK_W,
           flex: 1,
           minHeight: 120,
-          borderRadius: 8,
-          background: 'rgba(255,255,255,0.04)',
-          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)',
+          borderRadius: 10,
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.12)',
+          boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.5)',
           touchAction: 'none',
           cursor: 'pointer',
         }}
@@ -54,8 +54,8 @@ function VerticalVolumeSlider({ value, onChange }) {
           left: 0,
           right: 0,
           height: `${value}%`,
-          borderRadius: 8,
-          background: 'rgba(255,255,255,0.06)',
+          borderRadius: 10,
+          background: 'linear-gradient(to top, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
           pointerEvents: 'none',
         }} />
         {/* Pill thumb */}
@@ -63,16 +63,16 @@ function VerticalVolumeSlider({ value, onChange }) {
           position: 'absolute',
           left: 4,
           bottom: `calc((100% - ${PILL_H}px) * ${value / 100})`,
-          width: TRACK_W - 8,
+          width: TRACK_W - 10,
           height: PILL_H,
-          borderRadius: 6,
+          borderRadius: 8,
           background: '#fff',
-          boxShadow: '0 2px 8px rgba(255,255,255,0.3)',
+          boxShadow: '0 2px 12px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.15)',
           transition: 'bottom 0.05s linear',
           pointerEvents: 'none',
         }} />
       </div>
-      <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{value}%</span>
+      <span style={{ fontFamily: 'var(--font-data)', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>{value}%</span>
     </div>
   )
 }
@@ -470,7 +470,7 @@ export default function MusicWidget() {
 
               {/* Right: Vertical Volume Slider */}
               {currentTrack && (
-                <div style={{ width: 56, flexShrink: 0, padding: '12px 10px 16px 0', display: 'flex' }}>
+                <div style={{ width: 66, flexShrink: 0, padding: '12px 10px 16px 0', display: 'flex' }}>
                   <VerticalVolumeSlider value={volume} onChange={setVolume} />
                 </div>
               )}

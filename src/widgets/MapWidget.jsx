@@ -5,14 +5,22 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-le
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// Custom car marker icon
+// Custom car marker icon with pulse
 const carIcon = new L.DivIcon({
   className: '',
-  html: `<div style="
-    width: 20px; height: 20px; border-radius: 50%;
-    background: #00d9a3; border: 3px solid #fff;
-    box-shadow: 0 0 16px rgba(0,217,163,0.6), 0 2px 8px rgba(0,0,0,0.4);
-  "></div>`,
+  html: `<div style="position:relative; width:20px; height:20px;">
+    <div style="
+      position:absolute; inset:-8px; border-radius:50%;
+      border: 2px solid rgba(0,217,163,0.5);
+      animation: mapPulse 2s ease-out infinite;
+    "></div>
+    <div style="
+      width:20px; height:20px; border-radius:50%;
+      background:#00d9a3; border:3px solid #fff;
+      box-shadow: 0 0 16px rgba(0,217,163,0.6), 0 2px 8px rgba(0,0,0,0.4);
+      position:relative; z-index:1;
+    "></div>
+  </div>`,
   iconSize: [20, 20],
   iconAnchor: [10, 10],
 })
@@ -187,6 +195,10 @@ export default function MapWidget() {
 
       <style jsx global>{`
         @keyframes spin { to { transform: rotate(360deg) } }
+        @keyframes mapPulse {
+          0% { transform: scale(1); opacity: 0.7; }
+          100% { transform: scale(2.5); opacity: 0; }
+        }
         .leaflet-container { background: #1a1a2e !important; }
       `}</style>
     </div>

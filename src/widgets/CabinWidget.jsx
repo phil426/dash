@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import useSpotify from '../hooks/useSpotify'
 
 const sliders = [
   { key: 'speed',  label: 'Speed',        left: 'Slow',    right: 'Fast',    colors: ['#b5cc00', '#b5cc00'], defaultVal: 50 },
@@ -56,9 +57,20 @@ function PillSlider({ value, colors, onChange }) {
 }
 
 export default function CabinWidget() {
+  const { volume: spotifyVolume, setVolume: setSpotifyVolume, session } = useSpotify()
+
   const [values, setValues] = useState(
     Object.fromEntries(sliders.map(s => [s.key, s.defaultVal]))
   )
+
+  // Sync initial Spotify volume to local state
+  const handleChange = (key, pct) => {
+    setValues(prev => ({ ...prev, [key]: pct }))
+    // If this is the Music Volume slider and Spotify is connected, sync it
+    if (key === 'volume' && session) {
+      setSpotifyVolume(pct)
+    }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 2 }}>
@@ -74,7 +86,10 @@ export default function CabinWidget() {
       {/* Slider rows */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
         {sliders.map(s => {
-          const v = values[s.key]
+          // For volume, use Spotify's actual volume if connected
+          const v = (s.key === 'volume' && session && spotifyVolume != null)
+            ? spotifyVolume
+            : values[s.key]
           return (
             <div key={s.key}>
               {/* Row label */}
@@ -88,7 +103,7 @@ export default function CabinWidget() {
               <PillSlider
                 value={v}
                 colors={s.colors}
-                onChange={(pct) => setValues(prev => ({ ...prev, [s.key]: pct }))}
+                onChange={(pct) => handleChange(s.key, pct)}
               />
 
               {/* Sub-labels */}
