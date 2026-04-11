@@ -93,7 +93,9 @@ export default function MusicWidget() {
 
   const currentLineIndex = useMemo(() => {
     if (!syncedLyrics.length || syncedLyrics[0].time === -1) return -1
-    const adjustedProgress = progressMs + 1000
+    // With rAF interpolation, progressMs is now frame-accurate (~16ms)
+    // so we only need a small visual lookahead (not a polling-compensation hack)
+    const adjustedProgress = progressMs + 200
     let idx = -1
     for (let i = 0; i < syncedLyrics.length; i++) {
       if (syncedLyrics[i].time <= adjustedProgress) idx = i
@@ -411,7 +413,7 @@ export default function MusicWidget() {
                     {/* Progress Bar */}
                     <div style={{ marginBottom: 14, flexShrink: 0 }}>
                       <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${progress}%`, background: '#fff', borderRadius: 2, transition: 'width 1s linear' }} />
+                        <div style={{ height: '100%', width: `${progress}%`, background: '#fff', borderRadius: 2 }} />
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
                         <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{formatMs(progressMs)}</span>

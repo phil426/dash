@@ -9,11 +9,18 @@ export default function useSpotify() {
   const [durationMs, setDurationMs] = useState(0)
   const [playlists, setPlaylists] = useState([])
   const [isShuffle, setIsShuffle] = useState(false)
-  const [repeatState, setRepeatState] = useState('off') // 'off', 'track', 'context'
+  const [repeatState, setRepeatState] = useState('off')
   const [volume, setVolumeState] = useState(50)
-  const [syncedLyrics, setSyncedLyrics] = useState([]) // [{time: ms, text: string}]
+  const [syncedLyrics, setSyncedLyrics] = useState([])
   const playlistsFetched = useRef(false)
   const lastTrackId = useRef(null)
+
+  // ── 2nd/3rd order sync: interpolation + drift correction ──
+  const [interpolatedProgress, setInterpolatedProgress] = useState(0)
+  const pollAnchor = useRef({ progress: 0, wallTime: 0, playing: false })
+  const driftHistory = useRef([]) // recent drift samples for smoothing
+  const driftOffset = useRef(0)   // smoothed correction in ms
+  const rafId = useRef(null)
 
   // A generic fetch wrapper for Spotify API
   const fetchSpotifyObj = useCallback(
@@ -64,14 +71,50 @@ export default function useSpotify() {
         setVolumeState(data.device.volume_percent)
       }
 
+      // ── 2nd order: set the interpolation anchor ──
+      const now = performance.now()
+      const prevAnchor = pollAnchor.current
+
+      // ── 3rd order: compute drift from last prediction ──
+      if (prevAnchor.wallTime > 0 && prevAnchor.playing) {
+        const elapsed = now - prevAnchor.wallTime
+        const predicted = prevAnchor.progress + elapsed
+        const actual = data.progress_ms
+        const drift = actual - predicted // positive = we were behind, negative = ahead
+
+        // Only count drift for same track, small drifts (not seeks)
+        if (Math.abs(drift) < 3000 && data.item.id === lastTrackId.current) {
+          driftHistory.current.push(drift)
+          // Keep last 5 samples for smoothing
+          if (driftHistory.current.length > 5) driftHistory.current.shift()
+          // Weighted average: recent samples count more
+          const weights = driftHistory.current.map((_, i) => i + 1)
+          const totalWeight = weights.reduce((a, b) => a + b, 0)
+          driftOffset.current = driftHistory.current.reduce((sum, d, i) => sum + d * weights[i], 0) / totalWeight
+        } else {
+          // Seek detected or track change — reset drift
+          driftHistory.current = []
+          driftOffset.current = 0
+        }
+      }
+
+      pollAnchor.current = {
+        progress: data.progress_ms + driftOffset.current,
+        wallTime: now,
+        playing: data.is_playing,
+      }
+
       // Fetch lyrics only when track changes
       if (data.item.id !== lastTrackId.current) {
         lastTrackId.current = data.item.id
+        driftHistory.current = []
+        driftOffset.current = 0
         fetchLyrics(data.item)
       }
     } else {
       setIsPlaying(false)
       setCurrentTrack(null)
+      pollAnchor.current = { progress: 0, wallTime: 0, playing: false }
     }
   }, [fetchSpotifyObj])
 
@@ -168,6 +211,22 @@ export default function useSpotify() {
     return () => clearInterval(interval)
   }, [session, fetchCurrentlyPlaying, fetchPlaylists])
 
+  // ── 2nd order: rAF-driven interpolation loop ──
+  useEffect(() => {
+    const tick = () => {
+      const anchor = pollAnchor.current
+      if (anchor.wallTime > 0) {
+        const elapsed = anchor.playing ? (performance.now() - anchor.wallTime) : 0
+        setInterpolatedProgress(Math.max(0, anchor.progress + elapsed))
+      }
+      rafId.current = requestAnimationFrame(tick)
+    }
+    rafId.current = requestAnimationFrame(tick)
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current)
+    }
+  }, [])
+
   const play = (contextUri = null, offsetUri = null) => {
     const body = {}
     if (contextUri) body.context_uri = contextUri
@@ -204,7 +263,8 @@ export default function useSpotify() {
   return {
     currentTrack,
     isPlaying,
-    progressMs,
+    progressMs: interpolatedProgress, // use interpolated for display + lyrics
+    rawProgressMs: progressMs,         // raw polled value if needed
     durationMs,
     playlists,
     isShuffle,
