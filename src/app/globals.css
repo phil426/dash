@@ -341,16 +341,20 @@ html, body, #root {
 }
 
 .left-panel.collapsed {
-  width: 0;
-  min-width: 0;
-  padding: 0;
+  width: 48px;
+  min-width: 48px;
+  padding: 8px 0;
   overflow: hidden;
+  align-items: center;
 }
 
 .left-panel.collapsed .left-panel-header,
 .left-panel.collapsed .left-panel-cabin {
   opacity: 0;
   pointer-events: none;
+  width: 0;
+  height: 0;
+  overflow: hidden;
   transition: opacity 0.15s ease;
 }
 
@@ -387,10 +391,10 @@ html, body, #root {
 }
 
 .left-panel.collapsed .sidebar-toggle {
-  position: fixed;
-  left: 8px;
-  bottom: 20px;
+  position: relative;
+  bottom: auto;
   right: auto;
+  margin-top: auto;
 }
 
 .left-panel-header {

@@ -129,7 +129,8 @@ export default function useSpotify() {
   }, [fetchSpotifyObj])
 
   const fetchPlaylistTracks = useCallback(async (playlistId) => {
-    const data = await fetchSpotifyObj(`/playlists/${playlistId}/tracks?limit=50`)
+    const data = await fetchSpotifyObj(`/playlists/${playlistId}/tracks?limit=50&additional_types=track,episode&market=from_token`)
+    console.log('Playlist tracks response:', data)
     if (data && data.items) {
       return data.items.filter(item => item?.track).map(item => item.track)
     }
