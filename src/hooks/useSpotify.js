@@ -129,23 +129,32 @@ export default function useSpotify() {
   }, [fetchSpotifyObj])
 
   const fetchPlaylistTracks = useCallback(async (playlistId) => {
-    // Use /items endpoint (not deprecated /tracks) with explicit market
-    let data = await fetchSpotifyObj(`/playlists/${playlistId}/items?limit=50&additional_types=track&market=US`)
-    console.log('Playlist items response:', data)
-    
-    if (data && data.items && data.items.length > 0) {
-      return data.items.filter(item => item?.track).map(item => item.track)
+    const extractTracks = (items) => {
+      if (!items || !Array.isArray(items)) return []
+      return items
+        .map(item => item?.track || item)
+        .filter(t => t && t.name)
     }
 
-    // Fallback: fetch the full playlist object which embeds tracks
-    console.log('Trying full playlist fallback...')
+    // Attempt 1: /tracks endpoint (simpler, works for most apps)
+    let data = await fetchSpotifyObj(`/playlists/${playlistId}/tracks?limit=50&market=US`)
+    console.log('[Spotify] /tracks response:', JSON.stringify(data)?.substring(0, 300))
+    let tracks = extractTracks(data?.items)
+    if (tracks.length > 0) return tracks
+
+    // Attempt 2: /items endpoint  
+    data = await fetchSpotifyObj(`/playlists/${playlistId}/items?limit=50&market=US`)
+    console.log('[Spotify] /items response:', JSON.stringify(data)?.substring(0, 300))
+    tracks = extractTracks(data?.items)
+    if (tracks.length > 0) return tracks
+
+    // Attempt 3: full playlist object
     data = await fetchSpotifyObj(`/playlists/${playlistId}?market=US`)
-    console.log('Full playlist response:', data)
-    
-    if (data && data.tracks && data.tracks.items) {
-      return data.tracks.items.filter(item => item?.track).map(item => item.track)
-    }
+    console.log('[Spotify] full playlist response:', JSON.stringify(data)?.substring(0, 300))
+    tracks = extractTracks(data?.tracks?.items)
+    if (tracks.length > 0) return tracks
 
+    console.warn('[Spotify] All playlist track fetch attempts returned 0 tracks')
     return []
   }, [fetchSpotifyObj])
 

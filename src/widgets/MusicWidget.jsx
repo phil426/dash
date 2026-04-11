@@ -185,8 +185,18 @@ export default function MusicWidget() {
         {/* Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '14px 20px 10px', position: 'relative', flexShrink: 0 }}>
           {activeTab === 'playlists' && (
-            <button onClick={() => { if (selectedPlaylist) { setSelectedPlaylist(null); setPlaylistTracks([]) } else { setActiveTab('now-playing') } }} style={{ ...iconBtn(), position: 'absolute', left: 16 }}>
-              <ChevronLeft size={20} />
+            <button onClick={() => { if (selectedPlaylist) { setSelectedPlaylist(null); setPlaylistTracks([]) } else { setActiveTab('now-playing') } }}
+              style={{
+                position: 'absolute', left: 12, zIndex: 2,
+                width: 40, height: 40, borderRadius: 10,
+                background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)',
+                color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backdropFilter: 'blur(10px)', transition: 'all 0.2s',
+              }}
+              onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; e.currentTarget.style.borderColor = 'var(--accent)' }}
+              onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)' }}
+            >
+              <ChevronLeft size={24} strokeWidth={2.5} />
             </button>
           )}
 
