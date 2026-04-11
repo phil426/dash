@@ -4,17 +4,31 @@ import { useState, useEffect } from 'react'
 
 const AIRPORTS = ['SFO', 'OAK', 'STS']
 
-const MOCK_DEPARTURES = [
-  { time: '4:55 PM', city: 'LOS ANGELES', airline: 'UNITED', flight: 'UA 1204', gate: 'B8', status: 'ON TIME' },
-  { time: '5:10 PM', city: 'NEW YORK', airline: 'UNITED', flight: 'UA 1542', gate: 'B42', status: 'ON TIME' },
-  { time: '5:25 PM', city: 'SEATTLE', airline: 'ALASKA', flight: 'AS 308', gate: 'D4', status: 'ON TIME' },
-]
-
-const MOCK_ARRIVALS = [
-  { time: '5:30 PM', city: 'LOS ANGELES', airline: 'UNITED', flight: 'UA 1205', gate: 'A2', status: 'EN ROUTE' },
-  { time: '6:00 PM', city: 'CHICAGO', airline: 'UNITED', flight: 'UA 629', gate: 'B5', status: 'ON TIME' },
-  { time: '6:15 PM', city: 'DENVER', airline: 'UNITED', flight: 'UA 488', gate: 'C3', status: 'ON TIME' },
-]
+function generateMockFlights(type) {
+  const now = new Date()
+  const fmt = (offset) => {
+    const d = new Date(now.getTime() + offset * 60000)
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Los_Angeles' })
+  }
+  if (type === 'arrivals') {
+    return [
+      { time: fmt(-15), dest: 'LAX', airline: 'UNITED', flight: 'UA 1205', gate: 'A2', status: 'ARRIVED', past: true },
+      { time: fmt(12),  dest: 'ORD', airline: 'UNITED', flight: 'UA 629',  gate: 'B5', status: 'EN ROUTE' },
+      { time: fmt(35),  dest: 'DEN', airline: 'SOUTHWEST', flight: 'WN 488', gate: 'C3', status: 'ON TIME' },
+      { time: fmt(52),  dest: 'JFK', airline: 'DELTA', flight: 'DL 417', gate: 'A8', status: 'ON TIME' },
+      { time: fmt(78),  dest: 'SEA', airline: 'ALASKA', flight: 'AS 221', gate: 'D1', status: 'ON TIME' },
+      { time: fmt(110), dest: 'PHX', airline: 'AMERICAN', flight: 'AA 956', gate: '--', status: 'DELAYED' },
+    ]
+  }
+  return [
+    { time: fmt(-10), dest: 'LAX', airline: 'UNITED', flight: 'UA 1204', gate: 'B8', status: 'DEPARTED', past: true },
+    { time: fmt(8),   dest: 'JFK', airline: 'UNITED', flight: 'UA 1542', gate: 'B42', status: 'ON TIME' },
+    { time: fmt(25),  dest: 'SEA', airline: 'ALASKA', flight: 'AS 308',  gate: 'D4', status: 'ON TIME' },
+    { time: fmt(40),  dest: 'ORD', airline: 'AMERICAN', flight: 'AA 720', gate: 'A14', status: 'ON TIME' },
+    { time: fmt(65),  dest: 'DEN', airline: 'SOUTHWEST', flight: 'WN 112', gate: 'C7', status: 'DELAYED' },
+    { time: fmt(90),  dest: 'ATL', airline: 'DELTA', flight: 'DL 883', gate: 'B3', status: 'ON TIME' },
+  ]
+}
 
 function statusColor(status) {
   if (status === 'EN ROUTE') return 'var(--accent)'          // #00d9a3
@@ -43,16 +57,16 @@ export default function DeparturesWidget() {
         if (cancelled) return
         if (data.error) {
           setError(data.error)
-          setFlights(flightType === 'arrivals' ? MOCK_ARRIVALS : MOCK_DEPARTURES)
+          setFlights(generateMockFlights(flightType))
         } else {
-          setFlights(data.flights?.length ? data.flights : (flightType === 'arrivals' ? MOCK_ARRIVALS : MOCK_DEPARTURES))
+          setFlights(data.flights?.length ? data.flights : generateMockFlights(flightType))
         }
         setLoading(false)
       })
       .catch(err => {
         if (cancelled) return
         setError(err.message)
-        setFlights(flightType === 'arrivals' ? MOCK_ARRIVALS : MOCK_DEPARTURES)
+        setFlights(generateMockFlights(flightType))
         setLoading(false)
       })
 
@@ -157,7 +171,6 @@ export default function DeparturesWidget() {
             gridTemplateColumns: '80px 50px 1fr 70px 40px 75px',
             gap: '0 4px',
             padding: '10px 10px',
-            padding: '8px 10px',
             borderBottom: '1px solid var(--border)',
             opacity: d.past ? 0.3 : 1,
           }}>
