@@ -27,12 +27,13 @@ export default function MusicWidget() {
   const volumeRef = useRef(null)
   const lyricsContainerRef = useRef(null)
 
-  // Find current lyric line index
+  // Find current lyric line index (500ms lookahead so lyrics appear slightly early for karaoke feel)
   const currentLineIndex = useMemo(() => {
     if (!syncedLyrics.length || syncedLyrics[0].time === -1) return -1
+    const adjustedProgress = progressMs + 500
     let idx = -1
     for (let i = 0; i < syncedLyrics.length; i++) {
-      if (syncedLyrics[i].time <= progressMs) idx = i
+      if (syncedLyrics[i].time <= adjustedProgress) idx = i
       else break
     }
     return idx
@@ -351,7 +352,7 @@ export default function MusicWidget() {
 
           {/* ═══ NOW PLAYING TAB ═══ */}
           {activeTab === 'now-playing' && (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 28px 20px' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: showLyrics ? 'flex-start' : 'center', padding: '16px 28px 20px', overflow: 'hidden' }}>
               {!currentTrack ? (
                 <div style={{ margin: 'auto', textAlign: 'center' }}>
                   <Music size={32} style={{ color: 'rgba(255,255,255,0.15)', marginBottom: 16 }} />
@@ -477,7 +478,7 @@ export default function MusicWidget() {
                   )}
 
                   {/* Progress Bar */}
-                  <div style={{ marginBottom: 16 }}>
+                  <div style={{ marginBottom: 16, flexShrink: 0 }}>
                     <div style={{ 
                       height: 4, 
                       borderRadius: 2, 
@@ -503,7 +504,8 @@ export default function MusicWidget() {
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center', 
-                    marginBottom: 12
+                    marginBottom: 12,
+                    flexShrink: 0
                   }}>
                     <button 
                       onClick={toggleShuffle}
@@ -555,7 +557,7 @@ export default function MusicWidget() {
                   </div>
 
                   {/* Volume Slider */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 4px', flexShrink: 0 }}>
                     <Volume2 size={14} style={{ color: 'rgba(255,255,255,0.35)', flexShrink: 0 }} />
                     <div 
                       ref={volumeRef}
