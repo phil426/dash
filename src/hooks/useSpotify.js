@@ -129,11 +129,23 @@ export default function useSpotify() {
   }, [fetchSpotifyObj])
 
   const fetchPlaylistTracks = useCallback(async (playlistId) => {
-    const data = await fetchSpotifyObj(`/playlists/${playlistId}/tracks?limit=50&additional_types=track,episode&market=from_token`)
-    console.log('Playlist tracks response:', data)
-    if (data && data.items) {
+    // Try the dedicated tracks endpoint first
+    let data = await fetchSpotifyObj(`/playlists/${playlistId}/tracks?limit=50&additional_types=track,episode`)
+    console.log('Tracks endpoint response:', data)
+    
+    if (data && data.items && data.items.length > 0) {
       return data.items.filter(item => item?.track).map(item => item.track)
     }
+
+    // Fallback: fetch the full playlist object which embeds tracks
+    console.log('Trying full playlist fallback...')
+    data = await fetchSpotifyObj(`/playlists/${playlistId}?additional_types=track,episode`)
+    console.log('Full playlist response:', data)
+    
+    if (data && data.tracks && data.tracks.items) {
+      return data.tracks.items.filter(item => item?.track).map(item => item.track)
+    }
+
     return []
   }, [fetchSpotifyObj])
 

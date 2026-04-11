@@ -13,8 +13,8 @@ function formatMs(ms) {
 }
 
 export default function MusicWidget() {
-  const { 
-    session, currentTrack, isPlaying, togglePlay, next, previous, 
+  const {
+    session, currentTrack, isPlaying, togglePlay, next, previous,
     playlists, isShuffle, repeatState, toggleShuffle, toggleRepeat, play,
     progressMs, durationMs, volume, setVolume, fetchPlaylistTracks, syncedLyrics,
   } = useSpotify()
@@ -57,10 +57,10 @@ export default function MusicWidget() {
     setLoadingTracks(false)
   }
 
-  // 1) Not logged in
+  // Not logged in
   if (!session) {
     return (
-      <div className="card" style={{ 
+      <div className="card" style={{
         height: '100%', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', gap: 20, padding: 32, textAlign: 'center'
       }}>
@@ -74,7 +74,7 @@ export default function MusicWidget() {
         </div>
         <div>
           <div style={{ fontFamily: 'var(--font)', fontWeight: 700, fontSize: 22, color: '#fff', marginBottom: 6 }}>Spotify</div>
-          <div style={{ fontFamily: 'var(--font-data)', fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>Connect your Premium account<br/>to control playback</div>
+          <div style={{ fontFamily: 'var(--font-data)', fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>Connect your Premium account<br />to control playback</div>
         </div>
         <button onClick={() => signIn('spotify')} style={{
           background: '#1DB954', color: '#000', border: 'none', borderRadius: 24,
@@ -87,8 +87,8 @@ export default function MusicWidget() {
 
   // Track properties
   const isPodcast = currentTrack?.type === 'episode'
-  const imgUrl = isPodcast 
-    ? currentTrack?.show?.images?.[0]?.url || '' 
+  const imgUrl = isPodcast
+    ? currentTrack?.show?.images?.[0]?.url || ''
     : currentTrack?.album?.images?.[0]?.url || ''
   const artistName = isPodcast
     ? currentTrack?.show?.publisher || ''
@@ -97,13 +97,13 @@ export default function MusicWidget() {
   const albumName = isPodcast ? currentTrack?.show?.name : currentTrack?.album?.name
   const progress = durationMs > 0 ? (progressMs / durationMs) * 100 : 0
 
-  // Shared icon button style
   const iconBtn = (color = 'rgba(255,255,255,0.5)') => ({
-    background: 'none', border: 'none', color, cursor: 'pointer', padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s'
+    background: 'none', border: 'none', color, cursor: 'pointer', padding: 8,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s'
   })
 
   return (
-    <div className="card" style={{ 
+    <div className="card" style={{
       height: '100%', position: 'relative', overflow: 'hidden',
       display: 'flex', flexDirection: 'column', padding: 0
     }}>
@@ -119,18 +119,11 @@ export default function MusicWidget() {
 
       {/* Main Content */}
       <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
-        
-        {/* ── Header Bar ── */}
+
+        {/* Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '14px 20px 10px', position: 'relative', flexShrink: 0 }}>
-          {/* Back from playlist detail */}
-          {activeTab === 'playlists' && selectedPlaylist && (
-            <button onClick={() => { setSelectedPlaylist(null); setPlaylistTracks([]) }} style={{ ...iconBtn(), position: 'absolute', left: 16 }}>
-              <ChevronLeft size={20} />
-            </button>
-          )}
-          {/* Back from playlists list to player */}
-          {activeTab === 'playlists' && !selectedPlaylist && (
-            <button onClick={() => setActiveTab('now-playing')} style={{ ...iconBtn(), position: 'absolute', left: 16 }}>
+          {activeTab === 'playlists' && (
+            <button onClick={() => { if (selectedPlaylist) { setSelectedPlaylist(null); setPlaylistTracks([]) } else { setActiveTab('now-playing') } }} style={{ ...iconBtn(), position: 'absolute', left: 16 }}>
               <ChevronLeft size={20} />
             </button>
           )}
@@ -139,10 +132,7 @@ export default function MusicWidget() {
             display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 3,
             width: '100%', maxWidth: 200, backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.06)'
           }}>
-            {[
-              { id: 'now-playing', label: 'Playing' },
-              { id: 'playlists', label: 'Library' }
-            ].map(tab => (
+            {[{ id: 'now-playing', label: 'Playing' }, { id: 'playlists', label: 'Library' }].map(tab => (
               <button key={tab.id}
                 onClick={() => { setActiveTab(tab.id); if (tab.id === 'playlists') { setSelectedPlaylist(null); setPlaylistTracks([]) } }}
                 style={{
@@ -160,16 +150,16 @@ export default function MusicWidget() {
           </button>
         </div>
 
-        {/* ── Content ── */}
+        {/* Content */}
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
-          {/* ═══ LIBRARY: Playlist List ═══ */}
+          {/* LIBRARY: Playlist List */}
           {activeTab === 'playlists' && !selectedPlaylist && (
             <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px', display: 'flex', flexDirection: 'column', gap: 6 }}>
               {playlists.length === 0 ? (
                 <div style={{ margin: 'auto', textAlign: 'center', padding: 32 }}>
                   <div style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-data)', fontSize: 13, marginBottom: 12 }}>No playlists found.</div>
-                  <div style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-data)', fontSize: 11 }}>Try logging out and reconnecting to grant playlist permissions.</div>
+                  <div style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-data)', fontSize: 11 }}>Try logging out and reconnecting.</div>
                 </div>
               ) : (
                 playlists.map(p => (
@@ -192,7 +182,7 @@ export default function MusicWidget() {
                     )}
                     <div style={{ flex: 1, overflow: 'hidden' }}>
                       <div style={{ fontFamily: 'var(--font)', fontWeight: 600, color: '#fff', fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                      <div style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.35)', fontSize: 11, marginTop: 2 }}>{p.tracks?.total || '–'} tracks</div>
+                      <div style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.35)', fontSize: 11, marginTop: 2 }}>{p.tracks?.total || 0} tracks</div>
                     </div>
                   </button>
                 ))
@@ -200,10 +190,9 @@ export default function MusicWidget() {
             </div>
           )}
 
-          {/* ═══ LIBRARY: Playlist Detail ═══ */}
+          {/* LIBRARY: Playlist Detail */}
           {activeTab === 'playlists' && selectedPlaylist && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              {/* Playlist header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
                 {selectedPlaylist.images?.[0] && (
                   <img src={selectedPlaylist.images[0].url} style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover' }} alt="" />
@@ -222,13 +211,24 @@ export default function MusicWidget() {
                 </button>
               </div>
 
-              {/* Track list */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px' }}>
                 {loadingTracks ? (
                   <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-data)', fontSize: 13 }}>Loading tracks...</div>
                 ) : playlistTracks.length === 0 ? (
-                  <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-data)', fontSize: 13 }}>
-                    Unable to load tracks.<br/><span style={{ fontSize: 11, opacity: 0.7 }}>Try logging out & reconnecting for permissions.</span>
+                  <div style={{ padding: 40, textAlign: 'center' }}>
+                    <div style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-data)', fontSize: 13, marginBottom: 16 }}>
+                      Unable to load tracks. Your session needs updated permissions.
+                    </div>
+                    <button
+                      onClick={() => { signOut({ redirect: false }).then(() => signIn('spotify')) }}
+                      style={{
+                        background: '#1DB954', color: '#000', border: 'none', borderRadius: 20,
+                        padding: '10px 24px', fontFamily: 'var(--font)', fontWeight: 700, fontSize: 13,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Re-authenticate Spotify
+                    </button>
                   </div>
                 ) : (
                   playlistTracks.map((track, i) => (
@@ -260,27 +260,22 @@ export default function MusicWidget() {
             </div>
           )}
 
-          {/* ═══ NOW PLAYING ═══ */}
+          {/* NOW PLAYING */}
           {activeTab === 'now-playing' && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: showLyrics ? 'flex-start' : 'center', padding: '8px 28px 16px', overflow: 'hidden' }}>
               {!currentTrack ? (
                 <div style={{ margin: 'auto', textAlign: 'center' }}>
                   <Music size={32} style={{ color: 'rgba(255,255,255,0.15)', marginBottom: 16 }} />
                   <p style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
-                    Open Spotify on a device<br/>to start controlling playback.
+                    Open Spotify on a device<br />to start controlling playback.
                   </p>
                 </div>
               ) : (
                 <>
-                  {/* Album Art — full when no lyrics */}
+                  {/* Album Art - full when no lyrics */}
                   {!showLyrics && (
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20, flexShrink: 0 }}>
-                      <img src={imgUrl || ''} alt=""
-                        style={{
-                          width: '50%', maxWidth: 180, aspectRatio: '1', borderRadius: 14,
-                          boxShadow: '0 16px 48px rgba(0,0,0,0.6)', objectFit: 'cover',
-                          display: imgUrl ? 'block' : 'none'
-                        }} />
+                      {imgUrl && <img src={imgUrl} alt="" style={{ width: '50%', maxWidth: 180, aspectRatio: '1', borderRadius: 14, boxShadow: '0 16px 48px rgba(0,0,0,0.6)', objectFit: 'cover' }} />}
                     </div>
                   )}
 
@@ -309,7 +304,7 @@ export default function MusicWidget() {
                   {/* Karaoke Lyrics */}
                   {showLyrics && syncedLyrics.length > 0 && (
                     <div ref={lyricsContainerRef}
-                      style={{ 
+                      style={{
                         flex: 1, overflowY: 'auto', marginBottom: 8, padding: '8px 4px',
                         maskImage: 'linear-gradient(transparent 0%, black 12%, black 88%, transparent 100%)',
                         WebkitMaskImage: 'linear-gradient(transparent 0%, black 12%, black 88%, transparent 100%)',
@@ -324,7 +319,7 @@ export default function MusicWidget() {
                           transform: i === currentLineIndex ? 'scale(1.02)' : 'scale(1)',
                           minHeight: line.text ? 'auto' : 20,
                         }}>
-                          {line.text || '♪'}
+                          {line.text || '\u266a'}
                         </div>
                       ))}
                     </div>
@@ -332,9 +327,7 @@ export default function MusicWidget() {
 
                   {showLyrics && syncedLyrics.length === 0 && (
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div style={{ fontFamily: 'var(--font-data)', fontSize: 13, color: 'rgba(255,255,255,0.15)', textAlign: 'center' }}>
-                        No lyrics available
-                      </div>
+                      <div style={{ fontFamily: 'var(--font-data)', fontSize: 13, color: 'rgba(255,255,255,0.15)', textAlign: 'center' }}>No lyrics available</div>
                     </div>
                   )}
 
@@ -349,7 +342,7 @@ export default function MusicWidget() {
                     </div>
                   </div>
 
-                  {/* Transport Controls — BIGGER icons */}
+                  {/* Transport Controls - BIGGER */}
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginBottom: 10, flexShrink: 0 }}>
                     <button onClick={toggleShuffle} style={iconBtn(isShuffle ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
                       <Shuffle size={22} />
@@ -360,7 +353,7 @@ export default function MusicWidget() {
                     </button>
 
                     <button onClick={togglePlay}
-                      style={{ 
+                      style={{
                         width: 60, height: 60, borderRadius: '50%',
                         background: '#fff', color: '#000', border: 'none',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
