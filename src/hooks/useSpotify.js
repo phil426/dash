@@ -11,7 +11,9 @@ export default function useSpotify() {
   const [isShuffle, setIsShuffle] = useState(false)
   const [repeatState, setRepeatState] = useState('off') // 'off', 'track', 'context'
   const [volume, setVolumeState] = useState(50)
+  const [syncedLyrics, setSyncedLyrics] = useState([]) // [{time: ms, text: string}]
   const playlistsFetched = useRef(false)
+  const lastTrackId = useRef(null)
 
   // A generic fetch wrapper for Spotify API
   const fetchSpotifyObj = useCallback(
@@ -61,11 +63,61 @@ export default function useSpotify() {
       if (data.device) {
         setVolumeState(data.device.volume_percent)
       }
+
+      // Fetch lyrics only when track changes
+      if (data.item.id !== lastTrackId.current) {
+        lastTrackId.current = data.item.id
+        fetchLyrics(data.item)
+      }
     } else {
       setIsPlaying(false)
       setCurrentTrack(null)
     }
   }, [fetchSpotifyObj])
+
+  const fetchLyrics = async (track) => {
+    setSyncedLyrics([])
+    if (!track) return
+
+    const artistName = track.artists?.[0]?.name || ''
+    const trackName = track.name || ''
+    const durationSec = Math.round((track.duration_ms || 0) / 1000)
+
+    try {
+      const res = await fetch(
+        `https://lrclib.net/api/get?artist_name=${encodeURIComponent(artistName)}&track_name=${encodeURIComponent(trackName)}&duration=${durationSec}`
+      )
+      if (!res.ok) return
+
+      const data = await res.json()
+      const lrc = data.syncedLyrics || data.plainLyrics
+      if (!lrc) return
+
+      if (data.syncedLyrics) {
+        // Parse LRC format: [mm:ss.xx] text
+        const lines = data.syncedLyrics.split('\n').map(line => {
+          const match = line.match(/^\[(\d+):(\d+\.?\d*)\]\s*(.*)$/)
+          if (!match) return null
+          const minutes = parseInt(match[1], 10)
+          const seconds = parseFloat(match[2])
+          return {
+            time: (minutes * 60 + seconds) * 1000,
+            text: match[3] || ''
+          }
+        }).filter(Boolean)
+        setSyncedLyrics(lines)
+      } else if (data.plainLyrics) {
+        // Fallback: unsynced lyrics, just show all lines
+        const lines = data.plainLyrics.split('\n').map((text, i) => ({
+          time: -1, // unsynced
+          text
+        }))
+        setSyncedLyrics(lines)
+      }
+    } catch (err) {
+      console.warn('LRCLIB lyrics fetch failed', err)
+    }
+  }
 
   const fetchPlaylists = useCallback(async () => {
     if (playlistsFetched.current) return
@@ -145,6 +197,7 @@ export default function useSpotify() {
     toggleRepeat,
     setVolume,
     fetchPlaylistTracks,
+    syncedLyrics,
     session
   }
 }

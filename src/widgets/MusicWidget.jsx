@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { signIn, signOut } from 'next-auth/react'
-import { Play, Pause, SkipBack, SkipForward, Music, LogOut, Shuffle, Repeat, Volume2, Repeat1, ChevronLeft } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Music, LogOut, Shuffle, Repeat, Volume2, Repeat1, ChevronLeft, Mic2 } from 'lucide-react'
 import useSpotify from '../hooks/useSpotify'
 
 function formatMs(ms) {
@@ -16,14 +16,37 @@ export default function MusicWidget() {
   const { 
     session, currentTrack, isPlaying, togglePlay, next, previous, 
     playlists, isShuffle, repeatState, toggleShuffle, toggleRepeat, play,
-    progressMs, durationMs, volume, setVolume, fetchPlaylistTracks,
+    progressMs, durationMs, volume, setVolume, fetchPlaylistTracks, syncedLyrics,
   } = useSpotify()
 
   const [activeTab, setActiveTab] = useState('now-playing')
   const [selectedPlaylist, setSelectedPlaylist] = useState(null)
   const [playlistTracks, setPlaylistTracks] = useState([])
   const [loadingTracks, setLoadingTracks] = useState(false)
+  const [showLyrics, setShowLyrics] = useState(false)
   const volumeRef = useRef(null)
+  const lyricsContainerRef = useRef(null)
+
+  // Find current lyric line index
+  const currentLineIndex = useMemo(() => {
+    if (!syncedLyrics.length || syncedLyrics[0].time === -1) return -1
+    let idx = -1
+    for (let i = 0; i < syncedLyrics.length; i++) {
+      if (syncedLyrics[i].time <= progressMs) idx = i
+      else break
+    }
+    return idx
+  }, [syncedLyrics, progressMs])
+
+  // Auto-scroll lyrics to keep current line centered
+  useEffect(() => {
+    if (!lyricsContainerRef.current || currentLineIndex < 0) return
+    const container = lyricsContainerRef.current
+    const activeLine = container.children[currentLineIndex]
+    if (activeLine) {
+      activeLine.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [currentLineIndex])
 
   const openPlaylist = async (playlist) => {
     setSelectedPlaylist(playlist)
@@ -338,32 +361,41 @@ export default function MusicWidget() {
                 </div>
               ) : (
                 <>
-                  {/* Large Album Art — Hero */}
-                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-                    {imgUrl ? (
-                      <img 
-                        src={imgUrl} 
-                        alt="Album cover" 
-                        style={{
-                          width: '55%',
-                          maxWidth: 200,
-                          aspectRatio: '1',
-                          borderRadius: 14,
-                          boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.3)',
-                          objectFit: 'cover'
-                        }}
-                      />
-                    ) : (
-                      <div style={{ width: '55%', maxWidth: 200, aspectRatio: '1', borderRadius: 14, background: 'rgba(255,255,255,0.06)' }} />
-                    )}
-                  </div>
+                  {/* Large Album Art — Hero (hidden when lyrics active) */}
+                  {!showLyrics && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+                      {imgUrl ? (
+                        <img 
+                          src={imgUrl} 
+                          alt="Album cover" 
+                          style={{
+                            width: '55%',
+                            maxWidth: 200,
+                            aspectRatio: '1',
+                            borderRadius: 14,
+                            boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.3)',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      ) : (
+                        <div style={{ width: '55%', maxWidth: 200, aspectRatio: '1', borderRadius: 14, background: 'rgba(255,255,255,0.06)' }} />
+                      )}
+                    </div>
+                  )}
+
+                  {/* Compact art when lyrics showing */}
+                  {showLyrics && imgUrl && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+                      <img src={imgUrl} alt="" style={{ width: 48, height: 48, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.4)', objectFit: 'cover' }} />
+                    </div>
+                  )}
 
                   {/* Title / Artist */}
-                  <div style={{ textAlign: 'center', marginBottom: 16, overflow: 'hidden' }}>
+                  <div style={{ textAlign: 'center', marginBottom: showLyrics ? 8 : 16, overflow: 'hidden' }}>
                     <div style={{ 
                       fontFamily: 'var(--font)', 
                       fontWeight: 700, 
-                      fontSize: 20, 
+                      fontSize: showLyrics ? 16 : 20, 
                       color: '#fff',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -371,20 +403,22 @@ export default function MusicWidget() {
                       letterSpacing: '-0.02em',
                       textShadow: '0 2px 12px rgba(0,0,0,0.5)',
                       marginBottom: 4,
+                      transition: 'font-size 0.3s'
                     }}>
                       {title}
                     </div>
                     <div style={{ 
                       fontFamily: 'var(--font-data)', 
-                      fontSize: 14, 
+                      fontSize: showLyrics ? 12 : 14, 
                       color: 'rgba(255,255,255,0.5)',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
+                      transition: 'font-size 0.3s'
                     }}>
                       {artistName}
                     </div>
-                    {albumName && (
+                    {!showLyrics && albumName && (
                       <div style={{ 
                         fontFamily: 'var(--font-data)', 
                         fontSize: 11, 
@@ -398,6 +432,49 @@ export default function MusicWidget() {
                       </div>
                     )}
                   </div>
+
+                  {/* Karaoke Lyrics */}
+                  {showLyrics && syncedLyrics.length > 0 && (
+                    <div 
+                      ref={lyricsContainerRef}
+                      style={{ 
+                        flex: 1,
+                        overflowY: 'auto',
+                        marginBottom: 12,
+                        padding: '8px 4px',
+                        maskImage: 'linear-gradient(transparent 0%, black 15%, black 85%, transparent 100%)',
+                        WebkitMaskImage: 'linear-gradient(transparent 0%, black 15%, black 85%, transparent 100%)',
+                        scrollbarWidth: 'none',
+                      }}
+                    >
+                      {syncedLyrics.map((line, i) => (
+                        <div 
+                          key={i}
+                          style={{
+                            fontFamily: 'var(--font)',
+                            fontSize: i === currentLineIndex ? 18 : 15,
+                            fontWeight: i === currentLineIndex ? 700 : 500,
+                            color: i === currentLineIndex ? '#fff' : 'rgba(255,255,255,0.25)',
+                            textAlign: 'center',
+                            padding: '6px 8px',
+                            transition: 'all 0.3s ease',
+                            transform: i === currentLineIndex ? 'scale(1.02)' : 'scale(1)',
+                            minHeight: line.text ? 'auto' : 24,
+                          }}
+                        >
+                          {line.text || '♪'}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {showLyrics && syncedLyrics.length === 0 && (
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ fontFamily: 'var(--font-data)', fontSize: 13, color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>
+                        No lyrics available for this track
+                      </div>
+                    </div>
+                  )}
 
                   {/* Progress Bar */}
                   <div style={{ marginBottom: 16 }}>
@@ -468,6 +545,12 @@ export default function MusicWidget() {
                       onClick={toggleRepeat}
                       style={{ background: 'none', border: 'none', color: repeatState !== 'off' ? '#1DB954' : 'rgba(255,255,255,0.35)', cursor: 'pointer', padding: 8, position: 'relative', transition: 'color 0.2s' }}>
                       {repeatState === 'track' ? <Repeat1 size={18} /> : <Repeat size={18} />}
+                    </button>
+
+                    <button 
+                      onClick={() => setShowLyrics(prev => !prev)}
+                      style={{ background: 'none', border: 'none', color: showLyrics ? '#1DB954' : 'rgba(255,255,255,0.35)', cursor: 'pointer', padding: 8, transition: 'color 0.2s' }}>
+                      <Mic2 size={18} />
                     </button>
                   </div>
 
