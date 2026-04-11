@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { signIn, signOut } from 'next-auth/react'
-import { Play, Pause, SkipBack, SkipForward, Music, LogOut, Shuffle, Repeat, Volume2, Repeat1 } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Music, LogOut, Shuffle, Repeat, Volume2, Repeat1, ChevronLeft } from 'lucide-react'
 import useSpotify from '../hooks/useSpotify'
 
 function formatMs(ms) {
@@ -16,11 +16,23 @@ export default function MusicWidget() {
   const { 
     session, currentTrack, isPlaying, togglePlay, next, previous, 
     playlists, isShuffle, repeatState, toggleShuffle, toggleRepeat, play,
-    progressMs, durationMs, volume, setVolume,
+    progressMs, durationMs, volume, setVolume, fetchPlaylistTracks,
   } = useSpotify()
 
   const [activeTab, setActiveTab] = useState('now-playing')
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null)
+  const [playlistTracks, setPlaylistTracks] = useState([])
+  const [loadingTracks, setLoadingTracks] = useState(false)
   const volumeRef = useRef(null)
+
+  const openPlaylist = async (playlist) => {
+    setSelectedPlaylist(playlist)
+    setLoadingTracks(true)
+    setPlaylistTracks([])
+    const tracks = await fetchPlaylistTracks(playlist.id)
+    setPlaylistTracks(tracks)
+    setLoadingTracks(false)
+  }
 
   // 1) Not logged in
   if (!session) {
@@ -187,7 +199,7 @@ export default function MusicWidget() {
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           
           {/* ═══ LIBRARY TAB ═══ */}
-          {activeTab === 'playlists' && (
+          {activeTab === 'playlists' && !selectedPlaylist && (
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {playlists.length === 0 ? (
                 <div style={{ margin: 'auto', textAlign: 'center', padding: 32 }}>
@@ -202,10 +214,7 @@ export default function MusicWidget() {
                 playlists.map(p => (
                   <button 
                     key={p.id}
-                    onClick={() => {
-                      play(p.uri)
-                      setActiveTab('now-playing')
-                    }}
+                    onClick={() => openPlaylist(p)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -236,6 +245,84 @@ export default function MusicWidget() {
                   </button>
                 ))
               )}
+            </div>
+          )}
+
+          {/* ═══ PLAYLIST DETAIL (TRACK LIST) ═══ */}
+          {activeTab === 'playlists' && selectedPlaylist && (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {/* Playlist header with back button */}
+              <div style={{ 
+                display: 'flex', alignItems: 'center', gap: 12, 
+                padding: '12px 20px', 
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                flexShrink: 0
+              }}>
+                <button 
+                  onClick={() => { setSelectedPlaylist(null); setPlaylistTracks([]) }}
+                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 4, display: 'flex' }}
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                {selectedPlaylist.images?.[0] && (
+                  <img src={selectedPlaylist.images[0].url} style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover' }} alt="" />
+                )}
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <div style={{ fontFamily: 'var(--font)', fontWeight: 700, color: '#fff', fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedPlaylist.name}</div>
+                  <div style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{selectedPlaylist.tracks?.total || playlistTracks.length} tracks</div>
+                </div>
+                <button
+                  onClick={() => {
+                    play(selectedPlaylist.uri)
+                    setActiveTab('now-playing')
+                  }}
+                  style={{
+                    background: '#1DB954', color: '#000', border: 'none', borderRadius: 20,
+                    padding: '6px 16px', fontFamily: 'var(--font)', fontWeight: 700, fontSize: 12,
+                    cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4
+                  }}
+                >
+                  <Play size={14} fill="currentColor" /> Play
+                </button>
+              </div>
+
+              {/* Track list */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px' }}>
+                {loadingTracks ? (
+                  <div style={{ padding: 32, textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-data)', fontSize: 13 }}>Loading tracks...</div>
+                ) : (
+                  playlistTracks.map((track, i) => (
+                    <button
+                      key={track.id + '-' + i}
+                      onClick={() => {
+                        play(selectedPlaylist.uri, track.uri)
+                        setActiveTab('now-playing')
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        width: '100%', textAlign: 'left',
+                        background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.03)',
+                        padding: '8px 4px', cursor: 'pointer', transition: 'background 0.15s',
+                        borderRadius: 6
+                      }}
+                      onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <span style={{ fontFamily: 'var(--font-data)', fontSize: 11, color: 'rgba(255,255,255,0.2)', width: 20, textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
+                      {track.album?.images?.[2] ? (
+                        <img src={track.album.images[2].url} style={{ width: 32, height: 32, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} alt="" />
+                      ) : (
+                        <div style={{ width: 32, height: 32, borderRadius: 4, background: 'rgba(255,255,255,0.06)', flexShrink: 0 }} />
+                      )}
+                      <div style={{ flex: 1, overflow: 'hidden' }}>
+                        <div style={{ fontFamily: 'var(--font)', fontWeight: 500, color: '#fff', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.name}</div>
+                        <div style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.3)', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.artists?.map(a => a.name).join(', ')}</div>
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-data)', fontSize: 11, color: 'rgba(255,255,255,0.2)', flexShrink: 0 }}>{formatMs(track.duration_ms)}</span>
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
           )}
 

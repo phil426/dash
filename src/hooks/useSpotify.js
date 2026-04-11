@@ -76,6 +76,14 @@ export default function useSpotify() {
     }
   }, [fetchSpotifyObj])
 
+  const fetchPlaylistTracks = useCallback(async (playlistId) => {
+    const data = await fetchSpotifyObj(`/playlists/${playlistId}/tracks?limit=50`)
+    if (data && data.items) {
+      return data.items.filter(item => item?.track).map(item => item.track)
+    }
+    return []
+  }, [fetchSpotifyObj])
+
   useEffect(() => {
     if (!session) return
 
@@ -86,9 +94,11 @@ export default function useSpotify() {
     return () => clearInterval(interval)
   }, [session, fetchCurrentlyPlaying, fetchPlaylists])
 
-  const play = (contextUri = null) => {
-    const body = contextUri ? { context_uri: contextUri } : null
-    return fetchSpotifyObj('/me/player/play', 'PUT', body)
+  const play = (contextUri = null, offsetUri = null) => {
+    const body = {}
+    if (contextUri) body.context_uri = contextUri
+    if (offsetUri) body.offset = { uri: offsetUri }
+    return fetchSpotifyObj('/me/player/play', 'PUT', Object.keys(body).length ? body : null)
   }
   const pause = () => fetchSpotifyObj('/me/player/pause', 'PUT')
   const next = () => fetchSpotifyObj('/me/player/next', 'POST')
@@ -134,6 +144,7 @@ export default function useSpotify() {
     toggleShuffle,
     toggleRepeat,
     setVolume,
+    fetchPlaylistTracks,
     session
   }
 }
