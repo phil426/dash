@@ -5,6 +5,7 @@ const scopes = [
   "user-read-playback-state",
   "user-modify-playback-state",
   "user-read-currently-playing",
+  "user-read-private",
   "streaming",
   "playlist-read-private",
   "playlist-read-collaborative",
@@ -14,6 +15,7 @@ const SPOTIFY_AUTHORIZATION_URL =
   "https://accounts.spotify.com/authorize?" +
   new URLSearchParams({
     scope: scopes,
+    show_dialog: "true",
   });
 
 async function refreshAccessToken(token) {

@@ -93,7 +93,7 @@ export default function MusicWidget() {
 
   const currentLineIndex = useMemo(() => {
     if (!syncedLyrics.length || syncedLyrics[0].time === -1) return -1
-    const adjustedProgress = progressMs + 500
+    const adjustedProgress = progressMs + 1000
     let idx = -1
     for (let i = 0; i < syncedLyrics.length; i++) {
       if (syncedLyrics[i].time <= adjustedProgress) idx = i
@@ -407,41 +407,50 @@ export default function MusicWidget() {
                       </div>
                     </div>
 
-                    {/* Transport Controls - centered */}
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                      <button onClick={toggleShuffle} style={iconBtn(isShuffle ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
-                        <Shuffle size={20} />
-                      </button>
+                    {/* Transport Controls - centered on play/pause */}
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                      {/* Left aux */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 2, width: 60, justifyContent: 'flex-end' }}>
+                        <button onClick={toggleShuffle} style={iconBtn(isShuffle ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
+                          <Shuffle size={18} />
+                        </button>
+                      </div>
 
-                      <button onClick={previous} style={iconBtn('rgba(255,255,255,0.7)')}>
-                        <SkipBack size={28} fill="currentColor" />
-                      </button>
+                      {/* Core transport */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <button onClick={previous} style={iconBtn('rgba(255,255,255,0.7)')}>
+                          <SkipBack size={28} fill="currentColor" />
+                        </button>
 
-                      <button onClick={togglePlay}
-                        style={{
-                          width: 56, height: 56, borderRadius: '50%',
-                          background: '#fff', color: '#000', border: 'none',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          cursor: 'pointer', boxShadow: '0 6px 24px rgba(0,0,0,0.4)',
-                          transition: 'transform 0.15s', margin: '0 6px'
-                        }}
-                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.08)'}
-                        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                      >
-                        {isPlaying ? <Pause size={26} fill="currentColor" /> : <Play size={26} fill="currentColor" style={{ marginLeft: 3 }} />}
-                      </button>
+                        <button onClick={togglePlay}
+                          style={{
+                            width: 60, height: 60, borderRadius: '50%',
+                            background: '#fff', color: '#000', border: 'none',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', boxShadow: '0 6px 24px rgba(0,0,0,0.4)',
+                            transition: 'transform 0.15s', margin: '0 4px'
+                          }}
+                          onMouseOver={e => e.currentTarget.style.transform = 'scale(1.08)'}
+                          onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                          {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" style={{ marginLeft: 3 }} />}
+                        </button>
 
-                      <button onClick={next} style={iconBtn('rgba(255,255,255,0.7)')}>
-                        <SkipForward size={28} fill="currentColor" />
-                      </button>
+                        <button onClick={next} style={iconBtn('rgba(255,255,255,0.7)')}>
+                          <SkipForward size={28} fill="currentColor" />
+                        </button>
+                      </div>
 
-                      <button onClick={toggleRepeat} style={iconBtn(repeatState !== 'off' ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
-                        {repeatState === 'track' ? <Repeat1 size={20} /> : <Repeat size={20} />}
-                      </button>
+                      {/* Right aux */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 2, width: 60, justifyContent: 'flex-start' }}>
+                        <button onClick={toggleRepeat} style={iconBtn(repeatState !== 'off' ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
+                          {repeatState === 'track' ? <Repeat1 size={18} /> : <Repeat size={18} />}
+                        </button>
 
-                      <button onClick={() => setShowLyrics(prev => !prev)} style={iconBtn(showLyrics ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
-                        <Mic2 size={20} />
-                      </button>
+                        <button onClick={() => setShowLyrics(prev => !prev)} style={iconBtn(showLyrics ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
+                          <Mic2 size={18} />
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
