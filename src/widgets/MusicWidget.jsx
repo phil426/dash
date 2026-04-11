@@ -389,9 +389,11 @@ export default function MusicWidget() {
                           <div key={i} style={{
                             fontFamily: 'var(--font)', fontSize: i === currentLineIndex ? 18 : 14,
                             fontWeight: i === currentLineIndex ? 700 : 400,
-                            color: i === currentLineIndex ? '#fff' : 'rgba(255,255,255,0.2)',
-                            textAlign: 'center', padding: '5px 8px', transition: 'all 0.3s ease',
+                            color: i === currentLineIndex ? '#fff' : 'rgba(255,255,255,0.4)',
+                            textAlign: 'left', paddingLeft: 24, paddingRight: 12, paddingTop: 5, paddingBottom: 5,
+                            transition: 'all 0.3s ease',
                             transform: i === currentLineIndex ? 'scale(1.02)' : 'scale(1)',
+                            transformOrigin: 'left center',
                             minHeight: line.text ? 'auto' : 20,
                           }}>
                             {line.text || '\u266a'}

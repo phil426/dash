@@ -136,15 +136,15 @@ export default function DeparturesWidget() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: '80px 50px 1fr 70px 40px 75px',
-        gap: '0 2px',
-        padding: '8px 10px',
+        gap: '0 4px',
+        padding: '10px 10px',
         borderTop: '1px solid var(--border)',
         borderBottom: '1px solid var(--border)',
       }}>
         {['TIME', isDepartures ? 'DEST' : 'ORIGIN', 'AIRLINE', 'FLIGHT', 'GATE', 'STATUS'].map(h => (
           <span key={h} style={{
-            fontFamily: 'var(--font-data)', fontSize: 9, fontWeight: 700,
-            color: 'var(--text-muted)', letterSpacing: '0.1em',
+          fontFamily: 'var(--font-data)', fontSize: 11, fontWeight: 700,
+            color: 'var(--text-secondary)', letterSpacing: '0.1em',
           }}>{h}</span>
         ))}
       </div>
@@ -155,7 +155,8 @@ export default function DeparturesWidget() {
           <div key={i} style={{
             display: 'grid',
             gridTemplateColumns: '80px 50px 1fr 70px 40px 75px',
-            gap: '0 2px',
+            gap: '0 4px',
+            padding: '10px 10px',
             padding: '8px 10px',
             borderBottom: '1px solid var(--border)',
             opacity: d.past ? 0.3 : 1,

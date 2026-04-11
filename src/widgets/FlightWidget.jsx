@@ -9,17 +9,17 @@ export default function FlightWidget() {
       </div>
 
       <div className="flight-info" style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>United · UA 1542</div>
+        <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 600 }}>United · UA 1542</div>
 
         <div className="flight-route-visual">
           <div>
             <div className="flight-code">SFO</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>3:05 PM</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>3:05 PM</div>
           </div>
           <div className="flight-line" />
           <div style={{ textAlign: 'right' }}>
             <div className="flight-code">JFK</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>11:22 PM</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>11:22 PM</div>
           </div>
         </div>
 

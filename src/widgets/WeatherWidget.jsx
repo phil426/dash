@@ -100,8 +100,8 @@ export default function WeatherWidget() {
       }}>
         {['CITY', 'TEMP', '', 'CONDITIONS', 'WIND', 'HUMID'].map(h => (
           <span key={h} style={{
-            fontFamily: 'var(--font-data)', fontSize: 12, fontWeight: 700,
-            color: 'var(--text-muted)', letterSpacing: '0.1em',
+            fontFamily: 'var(--font-data)', fontSize: 13, fontWeight: 700,
+            color: 'var(--text-secondary)', letterSpacing: '0.1em',
           }}>{h}</span>
         ))}
       </div>
