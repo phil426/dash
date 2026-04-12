@@ -127,9 +127,74 @@ function TickerRow({ row, tickOffset }) {
   )
 }
 
+/* ─── Sport score ticker rows ─── */
+
+function SportsGameRow({ league }) {
+  if (!league?.games?.length) return null
+
+  const items = league.games
+  const doubled = [...items, ...items]
+
+  return (
+    <div className="ticker-row-wrap">
+      <span className="ticker-row-label sport-label">
+        {league.emoji} {league.label}
+      </span>
+      <div className="ticker-track">
+        <div className="ticker-scroll" style={{ animationDuration: '35s' }}>
+          {doubled.map((g, i) => {
+            const stateClass =
+              g.state === 'in' ? 'sport-live' :
+              g.state === 'post' ? 'sport-final' : 'sport-pre'
+            return (
+              <div className={`ticker-item sport-game ${stateClass}`} key={`${g.away}-${g.home}-${i}`}>
+                <span className="sport-team">{g.away}</span>
+                <span className="sport-score">{g.awayScore}</span>
+                <span className="sport-at">@</span>
+                <span className="sport-score">{g.homeScore}</span>
+                <span className="sport-team">{g.home}</span>
+                <span className="sport-detail">{g.detail}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function GolfRow({ league }) {
+  if (!league?.players?.length) return null
+
+  const doubled = [...league.players, ...league.players]
+
+  return (
+    <div className="ticker-row-wrap">
+      <span className="ticker-row-label sport-label">
+        {league.emoji} {league.eventName || league.label}
+      </span>
+      <div className="ticker-track">
+        <div className="ticker-scroll" style={{ animationDuration: '40s' }}>
+          {doubled.map((p, i) => (
+            <div className="ticker-item sport-game sport-golf" key={`${p.name}-${i}`}>
+              <span className="golf-pos">T{p.pos}</span>
+              <span className="sport-team">{p.name}</span>
+              <span className={`golf-score ${String(p.score).startsWith('-') ? 'under-par' : ''}`}>
+                {p.score}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function StocksWidget() {
   const [ticks, setTicks] = useState({})
+  const [sports, setSports] = useState(null)
 
+  // Market tick simulation
   useEffect(() => {
     const interval = setInterval(() => {
       setTicks(prev => {
@@ -145,19 +210,56 @@ export default function StocksWidget() {
     return () => clearInterval(interval)
   }, [])
 
+  // ESPN scores fetch
+  useEffect(() => {
+    async function fetchScores() {
+      try {
+        const res = await fetch('/api/scores')
+        if (res.ok) {
+          const data = await res.json()
+          setSports(data)
+        }
+      } catch (e) {
+        console.error('Sports scores fetch failed:', e)
+      }
+    }
+    fetchScores()
+    const interval = setInterval(fetchScores, 120_000) // refresh every 2 min
+    return () => clearInterval(interval)
+  }, [])
+
+  const sportsOrder = ['nba', 'mlb', 'nhl', 'golf']
+
   return (
     <div className="card" style={{ height: '100%', padding: '16px 0', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '0 24px', marginBottom: 8 }}>
         <div className="card-header" style={{ padding: 0 }}>
-          <span className="card-label">Markets</span>
+          <span className="card-label">Markets & Scores</span>
           <span className="card-badge live">Live</span>
         </div>
       </div>
 
       <div className="ticker-rows">
-        {TICKER_ROWS.map((row, i) => (
+        {TICKER_ROWS.map((row) => (
           <TickerRow key={row.label} row={row} tickOffset={ticks} />
         ))}
+
+        {/* Sports scores separator */}
+        {sports && Object.keys(sports).length > 0 && (
+          <div className="sports-divider">
+            <span className="sports-divider-line" />
+            <span className="sports-divider-text">SCORES</span>
+            <span className="sports-divider-line" />
+          </div>
+        )}
+
+        {/* Sports tickers */}
+        {sports && sportsOrder.map(key => {
+          const league = sports[key]
+          if (!league) return null
+          if (key === 'golf') return <GolfRow key={key} league={league} />
+          return <SportsGameRow key={key} league={league} />
+        })}
       </div>
     </div>
   )

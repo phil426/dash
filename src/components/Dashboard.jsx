@@ -18,7 +18,7 @@ const TABS = [
   { id: 'map',      icon: PiMapPinFill,          label: 'Map' },
   { id: 'weather',  icon: PiCloudSunFill,        label: 'Weather' },
   { id: 'flights',  icon: PiAirplaneTiltFill,    label: 'Flights' },
-  { id: 'stocks',   icon: PiChartLineUpFill,     label: 'Stocks' },
+  { id: 'stocks',   icon: PiChartLineUpFill,     label: 'Tickers' },
   { id: 'survey',   icon: PiClipboardTextFill,   label: 'Survey' },
 ]
 
