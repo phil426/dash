@@ -229,36 +229,59 @@ export default function MusicWidget() {
 
           {/* LIBRARY: Playlist List */}
           {activeTab === 'playlists' && !selectedPlaylist && (
-            <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px', scrollbarWidth: 'none' }}>
               {playlists.length === 0 ? (
                 <div style={{ margin: 'auto', textAlign: 'center', padding: 32 }}>
                   <div style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-data)', fontSize: 13, marginBottom: 12 }}>No playlists found.</div>
                   <div style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-data)', fontSize: 11 }}>Try logging out and reconnecting.</div>
                 </div>
               ) : (
-                playlists.map(p => (
-                  <button key={p.id} onClick={() => openPlaylist(p)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 14,
-                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.04)',
-                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-                      transition: 'all 0.2s', width: '100%'
-                    }}
-                    onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
-                    onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
-                  >
-                    {p.images?.[0] ? (
-                      <img src={p.images[0].url} style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} alt={p.name} />
-                    ) : (
-                      <div style={{ width: 44, height: 44, borderRadius: 6, background: 'rgba(255,255,255,0.08)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Music size={18} style={{ color: 'rgba(255,255,255,0.3)' }} />
-                      </div>
-                    )}
-                    <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <div style={{ fontFamily: 'var(--font)', fontWeight: 600, color: '#fff', fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                    </div>
-                  </button>
-                ))
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 12 }}>
+                  {playlists.map(p => (
+                    <button key={p.id} onClick={() => openPlaylist(p)}
+                      style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)',
+                        padding: 10, borderRadius: 14, cursor: 'pointer', textAlign: 'center',
+                        transition: 'all 0.25s ease', width: '100%',
+                        backdropFilter: 'blur(8px)',
+                      }}
+                      onMouseOver={e => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'
+                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)'
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)'
+                      }}
+                      onMouseOut={e => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)'
+                        e.currentTarget.style.boxShadow = 'none'
+                      }}
+                    >
+                      {p.images?.[0] ? (
+                        <img src={p.images[0].url} style={{
+                          width: '100%', aspectRatio: '1', borderRadius: 10, objectFit: 'cover',
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.4)', marginBottom: 8,
+                        }} alt={p.name} />
+                      ) : (
+                        <div style={{
+                          width: '100%', aspectRatio: '1', borderRadius: 10,
+                          background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8,
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                        }}>
+                          <Music size={28} style={{ color: 'rgba(255,255,255,0.2)' }} />
+                        </div>
+                      )}
+                      <div style={{
+                        fontFamily: 'var(--font)', fontWeight: 600, color: '#fff', fontSize: 12,
+                        width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        lineHeight: 1.3,
+                      }}>{p.name}</div>
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           )}
