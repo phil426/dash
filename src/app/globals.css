@@ -624,10 +624,14 @@ html, body, #root {
   background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.55) 100%);
 }
 
-.thumb-icon {
+.thumb-icon-wrap {
   position: relative;
-  z-index: 1;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.9);
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.7));
 }
 
 .thumb-label {
@@ -635,7 +639,7 @@ html, body, #root {
   bottom: 5px;
   left: 0;
   right: 0;
-  z-index: 1;
+  z-index: 2;
   text-align: center;
   font-family: var(--font-data);
   font-size: 9px;
