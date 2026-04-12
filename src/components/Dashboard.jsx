@@ -172,7 +172,7 @@ export default function Dashboard() {
                     <span className="thumb-overlay" />
                   </>
                 )}
-                <span className="thumb-icon-wrap"><Icon size={28} /></span>
+                <span className="thumb-icon-wrap"><Icon size={36} /></span>
                 <span className={thumb ? 'thumb-label' : 'nav-tab-label'}>{tab.label}</span>
               </button>
             )
