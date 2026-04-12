@@ -615,13 +615,19 @@ html, body, #root {
 .thumb-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.7) 100%);
   border-radius: 8px;
   pointer-events: none;
 }
 
 .thumb-tab.active .thumb-overlay {
-  background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.55) 100%);
+}
+
+.thumb-icon {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
 }
 
 .thumb-label {
@@ -629,6 +635,7 @@ html, body, #root {
   bottom: 5px;
   left: 0;
   right: 0;
+  z-index: 1;
   text-align: center;
   font-family: var(--font-data);
   font-size: 9px;

@@ -162,7 +162,7 @@ export default function Dashboard() {
                 className={`nav-tab thumb-tab ${isActive ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                {thumb ? (
+                {thumb && (
                   <>
                     <img
                       src={thumb}
@@ -170,14 +170,10 @@ export default function Dashboard() {
                       className="thumb-img"
                     />
                     <span className="thumb-overlay" />
-                    <span className="thumb-label">{tab.label}</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon size={22} />
-                    <span className="nav-tab-label">{tab.label}</span>
                   </>
                 )}
+                <Icon size={22} className="thumb-icon" />
+                <span className={thumb ? 'thumb-label' : 'nav-tab-label'}>{tab.label}</span>
               </button>
             )
           })}
