@@ -228,7 +228,7 @@ export default function StocksWidget() {
     return () => clearInterval(interval)
   }, [])
 
-  const sportsOrder = ['nba', 'mlb', 'nhl', 'epl', 'ucl', 'liga', 'mls', 'golf']
+  const sportsOrder = ['nba', 'mlb', 'nhl', 'epl', 'mls', 'golf']
 
   return (
     <div className="card" style={{ height: '100%', padding: '16px 0', display: 'flex', flexDirection: 'column' }}>

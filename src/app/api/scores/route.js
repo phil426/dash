@@ -7,8 +7,6 @@ const LEAGUES = [
   { key: 'mlb',  path: 'baseball/mlb/scoreboard',    emoji: '⚾', label: 'MLB' },
   { key: 'nhl',  path: 'hockey/nhl/scoreboard',      emoji: '🏒', label: 'NHL' },
   { key: 'epl',  path: 'soccer/eng.1/scoreboard',    emoji: '⚽', label: 'Premier League' },
-  { key: 'ucl',  path: 'soccer/uefa.champions/scoreboard', emoji: '🏆', label: 'Champions League' },
-  { key: 'liga', path: 'soccer/esp.1/scoreboard',    emoji: '⚽', label: 'La Liga' },
   { key: 'mls',  path: 'soccer/usa.1/scoreboard',    emoji: '⚽', label: 'MLS' },
   { key: 'golf', path: 'golf/pga/scoreboard',        emoji: '⛳', label: 'PGA' },
 ]
