@@ -22,11 +22,15 @@ export default function useSpotify() {
   const driftHistory = useRef([]) // recent drift samples for smoothing
   const driftOffset = useRef(0)   // smoothed correction in ms
   const rafId = useRef(null)
+  const rateLimitedUntil = useRef(0)
 
   // A generic fetch wrapper for Spotify API
   const fetchSpotifyObj = useCallback(
     async (endpoint, method = 'GET', body = null) => {
       if (!session?.user?.accessToken) return null
+
+      // Respect rate limit backoff
+      if (Date.now() < rateLimitedUntil.current) return null
 
       try {
         const res = await fetch(`https://api.spotify.com/v1${endpoint}`, {
@@ -40,6 +44,14 @@ export default function useSpotify() {
         
         // 204 No Content typically returned for playback commands
         if (res.status === 204) {
+          return null
+        }
+
+        // Handle rate limiting with backoff
+        if (res.status === 429) {
+          const retryAfter = parseInt(res.headers.get('Retry-After') || '30', 10)
+          rateLimitedUntil.current = Date.now() + retryAfter * 1000
+          console.warn(`Spotify rate limited, backing off for ${retryAfter}s`)
           return null
         }
 
