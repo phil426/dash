@@ -45,7 +45,7 @@ export default function useSpotify() {
         // Handle errors gracefully
         if (res.status >= 400) {
           const err = await res.json().catch(() => null)
-          console.warn('Spotify API error:', res.status, err)
+          console.warn(`Spotify API error [${res.status}] ${endpoint}:`, err?.error?.message || err)
           return null
         }
         
@@ -173,14 +173,12 @@ export default function useSpotify() {
 
   const fetchPlaylistTracks = useCallback(async (playlistId) => {
     // Extract tracks from playlist item wrappers.
-    // Feb 2026 API: `track` field is deprecated → use `item` instead, but handle both.
+    // Handles both old `track` field and new `item` field (Feb 2026 API change).
     const extractTracks = (items) => {
       if (!items || !Array.isArray(items)) return []
       return items
         .map(wrapper => {
-          // New API uses `item`, old API uses `track`
-          const t = wrapper?.item || wrapper?.track || wrapper
-          // Only return actual tracks (skip episodes/podcasts and null entries)
+          const t = wrapper?.track || wrapper?.item || wrapper
           if (!t || !t.name) return null
           if (t.type && t.type !== 'track') return null
           return t
@@ -189,8 +187,7 @@ export default function useSpotify() {
     }
 
     // Attempt 1: Full playlist object — works for ALL playlists (owned, followed, public)
-    // The /items and /tracks endpoints restrict to owner/collaborator only.
-    let data = await fetchSpotifyObj(`/playlists/${playlistId}?market=from_token&fields=tracks.items(track(id,name,uri,duration_ms,artists,album,type),item(id,name,uri,duration_ms,artists,album,type)),tracks.next,tracks.total`)
+    let data = await fetchSpotifyObj(`/playlists/${playlistId}?market=from_token`)
     console.log('[Spotify] full playlist response:', data ? `total=${data?.tracks?.total}, items=${data?.tracks?.items?.length}` : 'null')
     let tracks = extractTracks(data?.tracks?.items)
     if (tracks.length > 0) {
@@ -198,7 +195,7 @@ export default function useSpotify() {
       return tracks
     }
 
-    // Attempt 2: /items endpoint (new, Feb 2026) — only works for owned/collaborative playlists
+    // Attempt 2: /items endpoint — fallback for owned/collaborative playlists
     data = await fetchSpotifyObj(`/playlists/${playlistId}/items?limit=50&market=from_token&additional_types=track`)
     console.log('[Spotify] /items response:', data ? `total=${data?.total}, items=${data?.items?.length}` : 'null')
     tracks = extractTracks(data?.items)
