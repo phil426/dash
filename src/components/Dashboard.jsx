@@ -159,7 +159,7 @@ export default function Dashboard() {
             return (
               <button
                 key={tab.id}
-                className={`nav-tab thumb-tab ${isActive ? 'active' : ''}`}
+                className={`nav-tab ${isActive ? 'thumb-tab active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {thumb && isActive && (
