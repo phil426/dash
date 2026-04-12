@@ -19,6 +19,7 @@ export default function MusicWidget() {
     session, currentTrack, isPlaying, togglePlay, next, previous,
     playlists, isShuffle, repeatState, toggleShuffle, toggleRepeat, play,
     progressMs, durationMs, volume, setVolume, fetchPlaylistTracks, syncedLyrics,
+    artistImage,
   } = useSpotify()
 
   const [activeTab, setActiveTab] = useState('now-playing')
@@ -108,18 +109,43 @@ export default function MusicWidget() {
       height: '100%', position: 'relative', overflow: 'hidden',
       display: 'flex', flexDirection: 'column', padding: 0
     }}>
-      {/* Blurred background */}
-      {imgUrl && (
+      {/* Layer 0: Artist image — desaturated watermark */}
+      {artistImage && activeTab === 'now-playing' && (
+        <div style={{
+          position: 'absolute', inset: -60, zIndex: 0,
+          backgroundImage: `url(${artistImage})`, backgroundSize: 'cover', backgroundPosition: 'center top',
+          filter: 'blur(8px) brightness(0.18) saturate(0.3) contrast(1.1)',
+          opacity: showLyrics ? 0.3 : 0.55,
+          transition: 'opacity 0.8s ease',
+        }} />
+      )}
+      {/* Layer 1: Album art — full bleed hero */}
+      {imgUrl && activeTab === 'now-playing' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1,
+          backgroundImage: `url(${imgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center',
+          opacity: showLyrics ? 0.15 : 0.45,
+          transition: 'opacity 0.8s ease',
+        }} />
+      )}
+      {/* Layer 1b: Blurred album for Library tabs */}
+      {imgUrl && activeTab !== 'now-playing' && (
         <div style={{
           position: 'absolute', inset: -40, zIndex: 0,
           backgroundImage: `url(${imgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center',
           filter: 'blur(50px) brightness(0.35) saturate(1.4)', opacity: 0.9
         }} />
       )}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%)' }} />
+      {/* Layer 2: Cinematic gradient overlay */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2,
+        background: activeTab === 'now-playing'
+          ? 'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 35%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.85) 100%)'
+          : 'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%)'
+      }} />
 
       {/* Main Content */}
-      <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ position: 'relative', zIndex: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
         {/* Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '14px 20px 10px', position: 'relative', flexShrink: 0 }}>
@@ -293,114 +319,127 @@ export default function MusicWidget() {
             </div>
           )}
 
-          {/* NOW PLAYING */}
+          {/* NOW PLAYING — Cinema Mode */}
           {activeTab === 'now-playing' && (
-            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', overflow: 'hidden' }}>
 
-              {/* Left: Main player content */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: showLyrics ? 'flex-start' : 'center', padding: '8px 20px 16px 28px', overflow: 'hidden' }}>
-                {!currentTrack ? (
-                  <div style={{ margin: 'auto', textAlign: 'center' }}>
-                    <Music size={32} style={{ color: 'rgba(255,255,255,0.15)', marginBottom: 16 }} />
-                    <p style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
-                      Open Spotify on a device<br />to start controlling playback.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    {/* Album Art - full when no lyrics */}
-                    {!showLyrics && (
-                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20, flexShrink: 0 }}>
-                        {imgUrl && <img src={imgUrl} alt="" style={{ width: '50%', maxWidth: 180, aspectRatio: '1', borderRadius: 14, boxShadow: '0 16px 48px rgba(0,0,0,0.6)', objectFit: 'cover' }} />}
-                      </div>
-                    )}
-
-                    {/* Compact art when lyrics showing */}
-                    {showLyrics && imgUrl && (
-                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, flexShrink: 0 }}>
-                        <img src={imgUrl} alt="" style={{ width: 44, height: 44, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.4)', objectFit: 'cover' }} />
-                      </div>
-                    )}
-
-                    {/* Title / Artist */}
-                    <div style={{ textAlign: 'center', marginBottom: showLyrics ? 6 : 14, overflow: 'hidden', flexShrink: 0 }}>
-                      <div style={{ fontFamily: 'var(--font)', fontWeight: 700, fontSize: showLyrics ? 15 : 20, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.5)', marginBottom: 3, transition: 'font-size 0.3s' }}>
-                        {title}
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-data)', fontSize: showLyrics ? 12 : 14, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'font-size 0.3s' }}>
-                        {artistName}
-                      </div>
-                      {!showLyrics && albumName && (
-                        <div style={{ fontFamily: 'var(--font-data)', fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {albumName}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Karaoke Lyrics */}
-                    {showLyrics && syncedLyrics.length > 0 && (
-                      <div ref={lyricsContainerRef}
-                        style={{
-                          flex: 1, overflowY: 'auto', marginBottom: 8, padding: '8px 4px',
-                          maskImage: 'linear-gradient(transparent 0%, black 12%, black 88%, transparent 100%)',
-                          WebkitMaskImage: 'linear-gradient(transparent 0%, black 12%, black 88%, transparent 100%)',
-                          scrollbarWidth: 'none',
+              {!currentTrack ? (
+                <div style={{ margin: 'auto', textAlign: 'center' }}>
+                  <Music size={32} style={{ color: 'rgba(255,255,255,0.15)', marginBottom: 16 }} />
+                  <p style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
+                    Open Spotify on a device<br />to start controlling playback.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Lyrics — scrolls above controls when active */}
+                  {showLyrics && syncedLyrics.length > 0 && (
+                    <div ref={lyricsContainerRef}
+                      style={{
+                        flex: 1, overflowY: 'auto', padding: '16px 8px 8px',
+                        maskImage: 'linear-gradient(transparent 0%, black 10%, black 85%, transparent 100%)',
+                        WebkitMaskImage: 'linear-gradient(transparent 0%, black 10%, black 85%, transparent 100%)',
+                        scrollbarWidth: 'none',
+                      }}>
+                      {syncedLyrics.map((line, i) => (
+                        <div key={i} style={{
+                          fontFamily: 'var(--font)', fontSize: i === currentLineIndex ? 26 : 20,
+                          fontWeight: i === currentLineIndex ? 700 : 400,
+                          color: i === currentLineIndex ? '#fff' : 'rgba(255,255,255,0.4)',
+                          textAlign: 'left', paddingLeft: 28, paddingRight: 16, paddingTop: 6, paddingBottom: 6,
+                          transition: 'all 0.35s ease',
+                          transform: i === currentLineIndex ? 'scale(1.02)' : 'scale(1)',
+                          transformOrigin: 'left center',
+                          textShadow: i === currentLineIndex ? '0 2px 20px rgba(0,0,0,0.6)' : 'none',
+                          minHeight: line.text ? 'auto' : 20,
                         }}>
-                        {syncedLyrics.map((line, i) => (
-                          <div key={i} style={{
-                            fontFamily: 'var(--font)', fontSize: i === currentLineIndex ? 24 : 19,
-                            fontWeight: i === currentLineIndex ? 700 : 400,
-                            color: i === currentLineIndex ? '#fff' : 'rgba(255,255,255,0.55)',
-                            textAlign: 'left', paddingLeft: 24, paddingRight: 12, paddingTop: 5, paddingBottom: 5,
-                            transition: 'all 0.3s ease',
-                            transform: i === currentLineIndex ? 'scale(1.02)' : 'scale(1)',
-                            transformOrigin: 'left center',
-                            minHeight: line.text ? 'auto' : 20,
-                          }}>
-                            {line.text || '\u266a'}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          {line.text || '\u266a'}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-                    {showLyrics && syncedLyrics.length === 0 && (
-                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ fontFamily: 'var(--font-data)', fontSize: 13, color: 'rgba(255,255,255,0.15)', textAlign: 'center' }}>No lyrics available</div>
+                  {showLyrics && syncedLyrics.length === 0 && (
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ fontFamily: 'var(--font-data)', fontSize: 14, color: 'rgba(255,255,255,0.2)', textAlign: 'center' }}>No lyrics available for this track</div>
+                    </div>
+                  )}
+
+                  {/* Cinema HUD — floats at bottom */}
+                  <div style={{ padding: '0 28px 18px', flexShrink: 0 }}>
+
+                    {/* Compact album art badge + track info */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+                      {imgUrl && (
+                        <img src={imgUrl} alt="" style={{
+                          width: showLyrics ? 48 : 64, height: showLyrics ? 48 : 64,
+                          borderRadius: 10, objectFit: 'cover',
+                          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          transition: 'all 0.3s ease',
+                          flexShrink: 0,
+                        }} />
+                      )}
+                      <div style={{ flex: 1, overflow: 'hidden' }}>
+                        <div style={{
+                          fontFamily: 'var(--font)', fontWeight: 700,
+                          fontSize: showLyrics ? 16 : 20, color: '#fff',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          letterSpacing: '-0.02em', textShadow: '0 2px 16px rgba(0,0,0,0.6)',
+                          transition: 'font-size 0.3s', marginBottom: 2,
+                        }}>
+                          {title}
+                        </div>
+                        <div style={{
+                          fontFamily: 'var(--font-data)', fontSize: showLyrics ? 12 : 14,
+                          color: 'rgba(255,255,255,0.55)',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          textShadow: '0 1px 8px rgba(0,0,0,0.4)',
+                          transition: 'font-size 0.3s',
+                        }}>
+                          {artistName}
+                        </div>
+                        {!showLyrics && albumName && (
+                          <div style={{
+                            fontFamily: 'var(--font-data)', fontSize: 11,
+                            color: 'rgba(255,255,255,0.3)', marginTop: 2,
+                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          }}>
+                            {albumName}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
 
                     {/* Progress Bar */}
-                    <div style={{ marginBottom: 14, flexShrink: 0 }}>
-                      <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${progress}%`, background: '#fff', borderRadius: 2 }} />
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${progress}%`, background: '#fff', borderRadius: 2, transition: 'width 0.3s linear' }} />
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-                        <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{formatMs(progressMs)}</span>
-                        <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>{formatMs(durationMs)}</span>
+                        <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>{formatMs(progressMs)}</span>
+                        <span style={{ fontFamily: 'var(--font-data)', fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>{formatMs(durationMs)}</span>
                       </div>
                     </div>
 
-                    {/* Transport Controls - centered on play/pause */}
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
-                      {/* Left aux */}
+                    {/* Transport Controls */}
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 2, width: 60, justifyContent: 'flex-end' }}>
                         <button onClick={toggleShuffle} style={iconBtn(isShuffle ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
                           <Shuffle size={18} />
                         </button>
                       </div>
 
-                      {/* Core transport */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <button onClick={previous} style={iconBtn('rgba(255,255,255,0.7)')}>
                           <SkipBack size={28} fill="currentColor" />
                         </button>
-
                         <button onClick={togglePlay}
                           style={{
                             width: 60, height: 60, borderRadius: '50%',
                             background: '#fff', color: '#000', border: 'none',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', boxShadow: '0 6px 24px rgba(0,0,0,0.4)',
+                            cursor: 'pointer', boxShadow: '0 6px 24px rgba(0,0,0,0.5)',
                             transition: 'transform 0.15s', margin: '0 4px'
                           }}
                           onMouseOver={e => e.currentTarget.style.transform = 'scale(1.08)'}
@@ -408,26 +447,23 @@ export default function MusicWidget() {
                         >
                           {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" style={{ marginLeft: 3 }} />}
                         </button>
-
                         <button onClick={next} style={iconBtn('rgba(255,255,255,0.7)')}>
                           <SkipForward size={28} fill="currentColor" />
                         </button>
                       </div>
 
-                      {/* Right aux */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 2, width: 60, justifyContent: 'flex-start' }}>
                         <button onClick={toggleRepeat} style={iconBtn(repeatState !== 'off' ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
                           {repeatState === 'track' ? <Repeat1 size={18} /> : <Repeat size={18} />}
                         </button>
-
                         <button onClick={() => setShowLyrics(prev => !prev)} style={iconBtn(showLyrics ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
                           <Mic2 size={18} />
                         </button>
                       </div>
                     </div>
-                  </>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
 
             </div>
           )}

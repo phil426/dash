@@ -12,6 +12,7 @@ export default function useSpotify() {
   const [repeatState, setRepeatState] = useState('off')
   const [volume, setVolumeState] = useState(50)
   const [syncedLyrics, setSyncedLyrics] = useState([])
+  const [artistImage, setArtistImage] = useState(null)
   const playlistsFetched = useRef(false)
   const lastTrackId = useRef(null)
 
@@ -104,12 +105,13 @@ export default function useSpotify() {
         playing: data.is_playing,
       }
 
-      // Fetch lyrics only when track changes
+      // Fetch lyrics + artist image only when track changes
       if (data.item.id !== lastTrackId.current) {
         lastTrackId.current = data.item.id
         driftHistory.current = []
         driftOffset.current = 0
         fetchLyrics(data.item)
+        fetchArtistImage(data.item)
       }
     } else {
       setIsPlaying(false)
@@ -159,6 +161,20 @@ export default function useSpotify() {
       }
     } catch (err) {
       console.warn('LRCLIB lyrics fetch failed', err)
+    }
+  }
+
+  const fetchArtistImage = async (track) => {
+    setArtistImage(null)
+    const artistId = track?.artists?.[0]?.id
+    if (!artistId) return
+    try {
+      const data = await fetchSpotifyObj(`/artists/${artistId}`)
+      if (data?.images?.[0]?.url) {
+        setArtistImage(data.images[0].url)
+      }
+    } catch (err) {
+      console.warn('Artist image fetch failed', err)
     }
   }
 
@@ -287,6 +303,7 @@ export default function useSpotify() {
     setVolume,
     fetchPlaylistTracks,
     syncedLyrics,
+    artistImage,
     session
   }
 }
