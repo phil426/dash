@@ -223,16 +223,28 @@ export default function useSpotify() {
     console.warn('[Spotify] All playlist track fetch attempts returned 0 tracks for', playlistId)
     return []
   }, [fetchSpotifyObj])
+  const pollInterval = useRef(null)
+  const isFetching = useRef(false)
+
+  const throttledFetch = useCallback(async () => {
+    if (isFetching.current) return
+    isFetching.current = true
+    try {
+      await fetchCurrentlyPlaying()
+    } finally {
+      isFetching.current = false
+    }
+  }, [fetchCurrentlyPlaying])
 
   useEffect(() => {
     if (!session) return
 
-    fetchCurrentlyPlaying()
+    throttledFetch()
     fetchPlaylists()
 
-    const interval = setInterval(fetchCurrentlyPlaying, 1000)
-    return () => clearInterval(interval)
-  }, [session, fetchCurrentlyPlaying, fetchPlaylists])
+    pollInterval.current = setInterval(throttledFetch, 1000)
+    return () => clearInterval(pollInterval.current)
+  }, [session, throttledFetch, fetchPlaylists])
 
   // ── 2nd order: rAF-driven interpolation loop ──
   useEffect(() => {
