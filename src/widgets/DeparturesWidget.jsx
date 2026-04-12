@@ -4,32 +4,6 @@ import { useState, useEffect } from 'react'
 
 const AIRPORTS = ['SFO', 'OAK', 'STS']
 
-function generateMockFlights(type) {
-  const now = new Date()
-  const fmt = (offset) => {
-    const d = new Date(now.getTime() + offset * 60000)
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Los_Angeles' })
-  }
-  if (type === 'arrivals') {
-    return [
-      { time: fmt(-15), dest: 'LAX', airline: 'UNITED', flight: 'UA 1205', gate: 'A2', status: 'ARRIVED', past: true },
-      { time: fmt(12),  dest: 'ORD', airline: 'UNITED', flight: 'UA 629',  gate: 'B5', status: 'EN ROUTE' },
-      { time: fmt(35),  dest: 'DEN', airline: 'SOUTHWEST', flight: 'WN 488', gate: 'C3', status: 'ON TIME' },
-      { time: fmt(52),  dest: 'JFK', airline: 'DELTA', flight: 'DL 417', gate: 'A8', status: 'ON TIME' },
-      { time: fmt(78),  dest: 'SEA', airline: 'ALASKA', flight: 'AS 221', gate: 'D1', status: 'ON TIME' },
-      { time: fmt(110), dest: 'PHX', airline: 'AMERICAN', flight: 'AA 956', gate: '--', status: 'DELAYED' },
-    ]
-  }
-  return [
-    { time: fmt(-10), dest: 'LAX', airline: 'UNITED', flight: 'UA 1204', gate: 'B8', status: 'DEPARTED', past: true },
-    { time: fmt(8),   dest: 'JFK', airline: 'UNITED', flight: 'UA 1542', gate: 'B42', status: 'ON TIME' },
-    { time: fmt(25),  dest: 'SEA', airline: 'ALASKA', flight: 'AS 308',  gate: 'D4', status: 'ON TIME' },
-    { time: fmt(40),  dest: 'ORD', airline: 'AMERICAN', flight: 'AA 720', gate: 'A14', status: 'ON TIME' },
-    { time: fmt(65),  dest: 'DEN', airline: 'SOUTHWEST', flight: 'WN 112', gate: 'C7', status: 'DELAYED' },
-    { time: fmt(90),  dest: 'ATL', airline: 'DELTA', flight: 'DL 883', gate: 'B3', status: 'ON TIME' },
-  ]
-}
-
 function statusColor(status) {
   if (status === 'EN ROUTE') return 'var(--accent)'          // #00d9a3
   if (status === 'DELAYED') return 'var(--accent-warm)'      // #ff9500
@@ -57,16 +31,16 @@ export default function DeparturesWidget() {
         if (cancelled) return
         if (data.error) {
           setError(data.error)
-          setFlights(generateMockFlights(flightType))
+          setFlights([])
         } else {
-          setFlights(data.flights?.length ? data.flights : generateMockFlights(flightType))
+          setFlights(data.flights || [])
         }
         setLoading(false)
       })
       .catch(err => {
         if (cancelled) return
         setError(err.message)
-        setFlights(generateMockFlights(flightType))
+        setFlights([])
         setLoading(false)
       })
 
@@ -98,7 +72,11 @@ export default function DeparturesWidget() {
           }}>Flights</span>
           {loading && <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>Loading...</span>}
         </div>
-        <span className="card-badge live">Live</span>
+        {error ? (
+          <span className="card-badge" style={{ background: 'rgba(255,59,48,0.15)', color: '#ff6b6b' }}>Offline</span>
+        ) : (
+          <span className="card-badge live">Live</span>
+        )}
       </div>
 
       {/* Departures / Arrivals segmented control */}
@@ -165,23 +143,45 @@ export default function DeparturesWidget() {
 
       {/* Rows */}
       <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-        {flights.map((d, i) => (
-          <div key={i} style={{
-            display: 'grid',
-            gridTemplateColumns: '80px 50px 1fr 70px 40px 75px',
-            gap: '0 4px',
-            padding: '10px 10px',
-            borderBottom: '1px solid var(--border)',
-            opacity: d.past ? 0.3 : 1,
+        {flights.length === 0 && !loading ? (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            height: '100%', padding: 40, textAlign: 'center', gap: 12,
           }}>
-            <span style={{ ...col, fontSize: 15, fontWeight: 600, color: 'var(--accent)', whiteSpace: 'nowrap' }}>{d.time}</span>
-            <span style={{ ...col, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.dest}</span>
-            <span style={{ ...col, fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.airline}</span>
-            <span style={{ ...col, fontSize: 15, fontWeight: 500, color: 'var(--accent)', whiteSpace: 'nowrap' }}>{d.flight}</span>
-            <span style={{ ...col, fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{d.gate}</span>
-            <span style={{ ...col, fontSize: 14, fontWeight: 700, color: statusColor(d.status), whiteSpace: 'nowrap' }}>{d.status}</span>
+            <span style={{ fontSize: 40, opacity: 0.3 }}>✈</span>
+            <div style={{
+              fontFamily: 'var(--font-data)', fontSize: 16, fontWeight: 700,
+              color: 'var(--text-secondary)', letterSpacing: '0.04em',
+            }}>
+              Flight Data Unavailable
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-data)', fontSize: 12,
+              color: 'var(--text-muted)', lineHeight: 1.5, maxWidth: 260,
+            }}>
+              Real-time flight information is temporarily unavailable.
+              Please check the airport website for accurate schedules.
+            </div>
           </div>
-        ))}
+        ) : (
+          flights.map((d, i) => (
+            <div key={i} style={{
+              display: 'grid',
+              gridTemplateColumns: '80px 50px 1fr 70px 40px 75px',
+              gap: '0 4px',
+              padding: '10px 10px',
+              borderBottom: '1px solid var(--border)',
+              opacity: d.past ? 0.3 : 1,
+            }}>
+              <span style={{ ...col, fontSize: 15, fontWeight: 600, color: 'var(--accent)', whiteSpace: 'nowrap' }}>{d.time}</span>
+              <span style={{ ...col, fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.dest}</span>
+              <span style={{ ...col, fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.airline}</span>
+              <span style={{ ...col, fontSize: 15, fontWeight: 500, color: 'var(--accent)', whiteSpace: 'nowrap' }}>{d.flight}</span>
+              <span style={{ ...col, fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{d.gate}</span>
+              <span style={{ ...col, fontSize: 14, fontWeight: 700, color: statusColor(d.status), whiteSpace: 'nowrap' }}>{d.status}</span>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )
