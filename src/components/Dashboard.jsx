@@ -125,7 +125,7 @@ export default function Dashboard() {
                 className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                <Icon size={26} />
+                <Icon size={30} />
                 <span className="nav-tab-label">{tab.label}</span>
               </button>
             )
