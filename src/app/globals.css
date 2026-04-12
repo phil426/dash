@@ -551,10 +551,11 @@ html, body, #root {
 }
 
 .nav-tab.active {
-  background: var(--accent);
-  color: #000;
+  background: rgba(255,255,255,0.08);
+  color: var(--accent);
   opacity: 1;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb, 0, 217, 163), 0.2), 0 2px 8px rgba(0,0,0,0.4);
 }
 
 .nav-tab-icon {
@@ -571,7 +572,7 @@ html, body, #root {
 }
 
 .nav-tab.active .nav-tab-label {
-  color: #000;
+  color: var(--accent);
 }
 
 /* ── Thumbnail Nav ── */

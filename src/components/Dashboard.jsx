@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import html2canvas from 'html2canvas'
 import { PiMusicNoteFill, PiMapPinFill, PiCloudSunFill, PiAirplaneTiltFill, PiChartLineUpFill, PiClipboardTextFill } from 'react-icons/pi'
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import WeatherWidget from '../widgets/WeatherWidget'
@@ -45,40 +44,6 @@ export default function Dashboard() {
   const [theme, setTheme] = useState('default')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [thumbnails, setThumbnails] = useState({})
-  const contentRef = useRef(null)
-  const captureTimer = useRef(null)
-
-  // Capture a screenshot of the current content area
-  const captureThumb = useCallback(async (tabId) => {
-    if (!contentRef.current) return
-    try {
-      const canvas = await html2canvas(contentRef.current, {
-        scale: 0.25,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        logging: false,
-        imageTimeout: 2000,
-      })
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.6)
-      setThumbnails(prev => ({ ...prev, [tabId]: dataUrl }))
-    } catch (e) {
-      // Silently ignore capture failures
-    }
-  }, [])
-
-  // Capture when tab changes + periodically while tab is active
-  useEffect(() => {
-    // Capture after content settles
-    const delay = setTimeout(() => captureThumb(activeTab), 1500)
-    // Refresh every 10s
-    captureTimer.current = setInterval(() => captureThumb(activeTab), 10000)
-    return () => {
-      clearTimeout(delay)
-      clearInterval(captureTimer.current)
-    }
-  }, [activeTab, captureThumb])
 
   const THEMES = [
     { id: 'default',  label: 'Prius',        color: '#00d9a3' },
@@ -147,33 +112,21 @@ export default function Dashboard() {
 
       {/* ── Right Panel ── */}
       <div className="right-panel">
-        <div className="content-area" ref={contentRef}>
+        <div className="content-area">
           <TabContent activeTab={activeTab} />
         </div>
 
-        <div className="nav-tabs thumb-nav">
+        <div className="nav-tabs">
           {TABS.map(tab => {
             const Icon = tab.icon
-            const thumb = thumbnails[tab.id]
-            const isActive = activeTab === tab.id
             return (
               <button
                 key={tab.id}
-                className={`nav-tab ${isActive ? 'thumb-tab active' : ''}`}
+                className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                {thumb && isActive && (
-                  <>
-                    <img
-                      src={thumb}
-                      alt={tab.label}
-                      className="thumb-img"
-                    />
-                    <span className="thumb-overlay" />
-                  </>
-                )}
-                <span className="thumb-icon-wrap"><Icon size={isActive ? 30 : 28} /></span>
-                <span className={thumb && isActive ? 'thumb-label' : 'nav-tab-label'}>{tab.label}</span>
+                <Icon size={26} />
+                <span className="nav-tab-label">{tab.label}</span>
               </button>
             )
           })}
