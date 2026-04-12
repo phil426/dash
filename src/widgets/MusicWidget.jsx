@@ -256,7 +256,6 @@ export default function MusicWidget() {
                     )}
                     <div style={{ flex: 1, overflow: 'hidden' }}>
                       <div style={{ fontFamily: 'var(--font)', fontWeight: 600, color: '#fff', fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                      <div style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.35)', fontSize: 11, marginTop: 2 }}>{p.tracks?.total || 0} tracks</div>
                     </div>
                   </button>
                 ))
