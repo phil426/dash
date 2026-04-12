@@ -1146,9 +1146,9 @@ html, body, #root {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-md);
-  border-left: 3px solid transparent;
+  background: none;
+  border-radius: 0;
+  border-left: none;
   transition: var(--transition);
 }
 
@@ -1342,6 +1342,9 @@ html, body, #root {
 .sport-game {
   gap: 6px !important;
   padding: 6px 16px !important;
+  border-right: none !important;
+  border-radius: 0 !important;
+  background: none !important;
 }
 
 .sport-team {
