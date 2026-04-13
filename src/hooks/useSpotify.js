@@ -1,10 +1,21 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react'
 import { useSession } from 'next-auth/react'
 
 const rateLimitedUntil = { current: 0 }
 const globalIsFetching = { current: false }
 
+export const SpotifyContext = createContext(null)
+
+export function SpotifyProvider({ children }) {
+  const spotify = useSpotifyInternal()
+  return <SpotifyContext.Provider value={spotify}>{children}</SpotifyContext.Provider>
+}
+
 export default function useSpotify() {
+  return useContext(SpotifyContext)
+}
+
+function useSpotifyInternal() {
   const { data: session } = useSession()
   const [currentTrack, setCurrentTrack] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)

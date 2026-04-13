@@ -10,6 +10,7 @@ import CabinWidget from '../widgets/CabinWidget'
 import StocksWidget from '../widgets/StocksWidget'
 import DeparturesWidget from '../widgets/DeparturesWidget'
 import SurveyWidget from '../widgets/SurveyWidget'
+import { SpotifyProvider } from '../hooks/useSpotify'
 
 const MapWidget = dynamic(() => import('../widgets/MapWidget'), { ssr: false })
 
@@ -76,6 +77,7 @@ export default function Dashboard() {
   const dateStr = time.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' })
 
   return (
+    <SpotifyProvider>
     <main className="dash-shell">
       {/* Version */}
       <span style={{
@@ -170,5 +172,6 @@ export default function Dashboard() {
         </div>
       </div>
     </main>
+    </SpotifyProvider>
   )
 }
