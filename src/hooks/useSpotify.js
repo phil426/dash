@@ -84,7 +84,7 @@ export default function useSpotify() {
 
   const fetchCurrentlyPlaying = useCallback(async () => {
     const data = await fetchSpotifyObj('/me/player?additional_types=track,episode')
-    console.log('[Spotify Debug] /me/player response:', data)
+    console.log('[Spotify Debug] /me/player response:', { is_playing: data?.is_playing, has_item: !!data?.item, item_type: data?.item?.type, data })
     if (data && data.item) {
       setCurrentTrack(data.item)
       setIsPlaying(data.is_playing)
