@@ -329,8 +329,8 @@ html, body, #root {
 
 /* ── Left Panel ── */
 .left-panel {
-  width: 400px;
-  min-width: 400px;
+  width: 280px;
+  min-width: 280px;
   height: 100vh;
   display: flex;
   flex-direction: column;
