@@ -389,7 +389,7 @@ export default function MusicWidget() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
                       {imgUrl && (
                         <img src={imgUrl} alt="" style={{
-                          width: showLyrics ? 48 : 64, height: showLyrics ? 48 : 64,
+                          width: showLyrics ? 58 : 77, height: showLyrics ? 58 : 77,
                           borderRadius: 10, objectFit: 'cover',
                           boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
                           border: '1px solid rgba(255,255,255,0.08)',
@@ -400,7 +400,7 @@ export default function MusicWidget() {
                       <div style={{ flex: 1, overflow: 'hidden' }}>
                         <div style={{
                           fontFamily: 'var(--font)', fontWeight: 700,
-                          fontSize: showLyrics ? 16 : 20, color: '#fff',
+                          fontSize: showLyrics ? 19 : 24, color: '#fff',
                           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                           letterSpacing: '-0.02em', textShadow: '0 2px 16px rgba(0,0,0,0.6)',
                           transition: 'font-size 0.3s', marginBottom: 2,
@@ -408,7 +408,7 @@ export default function MusicWidget() {
                           {title}
                         </div>
                         <div style={{
-                          fontFamily: 'var(--font-data)', fontSize: showLyrics ? 12 : 14,
+                          fontFamily: 'var(--font-data)', fontSize: showLyrics ? 14 : 17,
                           color: 'rgba(255,255,255,0.55)',
                           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                           textShadow: '0 1px 8px rgba(0,0,0,0.4)',
@@ -418,7 +418,7 @@ export default function MusicWidget() {
                         </div>
                         {!showLyrics && albumName && (
                           <div style={{
-                            fontFamily: 'var(--font-data)', fontSize: 11,
+                            fontFamily: 'var(--font-data)', fontSize: 13,
                             color: 'rgba(255,255,255,0.3)', marginTop: 2,
                             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                           }}>
@@ -443,13 +443,13 @@ export default function MusicWidget() {
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 2, width: 60, justifyContent: 'flex-end' }}>
                         <button onClick={toggleShuffle} style={iconBtn(isShuffle ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
-                          <Shuffle size={18} />
+                          <Shuffle size={24} />
                         </button>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <button onClick={previous} style={iconBtn('rgba(255,255,255,0.7)')}>
-                          <SkipBack size={28} fill="currentColor" />
+                          <SkipBack size={38} fill="currentColor" />
                         </button>
                         <button onClick={togglePlay}
                           style={{
@@ -465,16 +465,16 @@ export default function MusicWidget() {
                           {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" style={{ marginLeft: 3 }} />}
                         </button>
                         <button onClick={next} style={iconBtn('rgba(255,255,255,0.7)')}>
-                          <SkipForward size={28} fill="currentColor" />
+                          <SkipForward size={38} fill="currentColor" />
                         </button>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 2, width: 60, justifyContent: 'flex-start' }}>
                         <button onClick={toggleRepeat} style={iconBtn(repeatState !== 'off' ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
-                          {repeatState === 'track' ? <Repeat1 size={18} /> : <Repeat size={18} />}
+                          {repeatState === 'track' ? <Repeat1 size={24} /> : <Repeat size={24} />}
                         </button>
                         <button onClick={() => setShowLyrics(prev => !prev)} style={iconBtn(showLyrics ? '#1DB954' : 'rgba(255,255,255,0.35)')}>
-                          <Mic2 size={18} />
+                          <Mic2 size={24} />
                         </button>
                       </div>
                     </div>
