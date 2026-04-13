@@ -19,7 +19,7 @@ export default function MusicWidget() {
     session, currentTrack, isPlaying, togglePlay, next, previous,
     playlists, isShuffle, repeatState, toggleShuffle, toggleRepeat, play,
     progressMs, durationMs, volume, setVolume, fetchPlaylistTracks, syncedLyrics,
-    artistImage,
+    artistImage, apiError,
   } = useSpotify()
 
   const [activeTab, setActiveTab] = useState('now-playing')
@@ -326,9 +326,26 @@ export default function MusicWidget() {
               {!currentTrack ? (
                 <div style={{ margin: 'auto', textAlign: 'center' }}>
                   <Music size={32} style={{ color: 'rgba(255,255,255,0.15)', marginBottom: 16 }} />
-                  <p style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
-                    Open Spotify on a device<br />to start controlling playback.
-                  </p>
+                  {session?.error === 'RefreshAccessTokenError' ? (
+                    <div>
+                      <p style={{ fontFamily: 'var(--font-data)', color: '#ff4d4d', fontSize: 14, marginBottom: 16 }}>
+                        Session expired. Re-authentication required.
+                      </p>
+                      <button onClick={() => signIn('spotify')} style={{
+                        background: '#1DB954', color: '#000', border: 'none', borderRadius: 24,
+                        padding: '10px 24px', fontFamily: 'var(--font)', fontWeight: 700, fontSize: 13,
+                        cursor: 'pointer'
+                      }}>Re-authenticate</button>
+                    </div>
+                  ) : apiError ? (
+                    <p style={{ fontFamily: 'var(--font-data)', color: '#ff4d4d', fontSize: 14 }}>
+                      {apiError}
+                    </p>
+                  ) : (
+                    <p style={{ fontFamily: 'var(--font-data)', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
+                      Open Spotify on a device<br />to start controlling playback.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <>

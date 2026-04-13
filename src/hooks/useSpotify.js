@@ -14,15 +14,15 @@ export default function useSpotify() {
   const [syncedLyrics, setSyncedLyrics] = useState([])
   const [artistImage, setArtistImage] = useState(null)
   const playlistsFetched = useRef(false)
-  const lastTrackId = useRef(null)
-
   // ── 2nd/3rd order sync: interpolation + drift correction ──
   const [interpolatedProgress, setInterpolatedProgress] = useState(0)
   const pollAnchor = useRef({ progress: 0, wallTime: 0, playing: false })
+
   const driftHistory = useRef([]) // recent drift samples for smoothing
   const driftOffset = useRef(0)   // smoothed correction in ms
   const rafId = useRef(null)
   const rateLimitedUntil = useRef(0)
+  const [apiError, setApiError] = useState(null)
 
   // A generic fetch wrapper for Spotify API
   const fetchSpotifyObj = useCallback(
@@ -30,7 +30,10 @@ export default function useSpotify() {
       if (!session?.user?.accessToken) return null
 
       // Respect rate limit backoff
-      if (Date.now() < rateLimitedUntil.current) return null
+      if (Date.now() < rateLimitedUntil.current) {
+        setApiError('Rate limited by Spotify. Please wait...')
+        return null
+      }
 
       try {
         const res = await fetch(`https://api.spotify.com/v1${endpoint}`, {
@@ -44,6 +47,7 @@ export default function useSpotify() {
         
         // 204 No Content typically returned for playback commands
         if (res.status === 204) {
+          setApiError(null)
           return null
         }
 
@@ -51,6 +55,7 @@ export default function useSpotify() {
         if (res.status === 429) {
           const retryAfter = parseInt(res.headers.get('Retry-After') || '30', 10)
           rateLimitedUntil.current = Date.now() + retryAfter * 1000
+          setApiError(`Rate limited for ${retryAfter}s`)
           console.warn(`Spotify rate limited, backing off for ${retryAfter}s`)
           return null
         }
@@ -58,12 +63,15 @@ export default function useSpotify() {
         // Handle errors gracefully
         if (res.status >= 400) {
           const err = await res.json().catch(() => null)
+          setApiError(err?.error?.message || `API Error ${res.status}`)
           console.warn(`Spotify API error [${res.status}] ${endpoint}:`, err?.error?.message || err)
           return null
         }
         
+        setApiError(null)
         return await res.json()
       } catch (err) {
+        setApiError(err.message || 'Network error')
         console.error('Spotify API error', err)
         return null
       }
@@ -328,6 +336,7 @@ export default function useSpotify() {
     fetchPlaylistTracks,
     syncedLyrics,
     artistImage,
-    session
+    session,
+    apiError
   }
 }
