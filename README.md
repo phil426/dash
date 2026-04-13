@@ -1,16 +1,35 @@
-# React + Vite
+# GetPhily Passenger Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A production-grade, full-screen Next.js dashboard mounted in the backseat of an Uber Premier vehicle. This interactive display provides real-time information and ambient media controls tailored specifically to the current ride. 
 
-Currently, two official plugins are available:
+## Features
+- **Spotify Music Controls**: Fully integrated authenticated playback controls, featuring real-time synchronized lyrics (via LRCLIB) and synced album art.
+- **Live Flight Tracker**: SFO, OAK and STS departure info tracking via AviationStack with realtime gate and delay updates.
+- **Weather / Conditions**: Current location GPS weather via Open-Meteo API.
+- **Glassmorphism Design**: High-fidelity modern UI styling heavily optimized for landscape tablet displays with customized themes (Prius, Midnight Blue, Lavender, etc).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Technology Stack
+- **Framework**: Next.js 16 (App Router)
+- **State Management**: React Hooks (no Redux)
+- **Deployment**: Custom auto-deploy pipeline to Hostinger VPS
+- **Authentication**: NextAuth.js (Spotify Provider)
+- **Map Subsystem**: React-Leaflet w/ Protomaps (OSM)
+- **Styling**: Vanilla CSS custom properties targeting high-DPI displays
 
-## React Compiler
+## Architecture
+The application runs entirely client-side once hydration completes, utilizing an aggressively optimized polling hook architecture (`useSpotify.js`) to limit 429 penalties. 
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Development Settings
+```bash
+# Clone the repository
+git clone https://github.com/phil426/getphily-dash.git
+cd getphily-dash
 
-## Expanding the ESLint configuration
+# Install dependencies
+npm ci
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Start the local development server
+npm run dev
+```
+
+See `AGENTS.md` for specific rules regarding automated contributions and deployments.
