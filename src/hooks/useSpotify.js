@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 
+const rateLimitedUntil = { current: 0 }
+const globalIsFetching = { current: false }
+
 export default function useSpotify() {
   const { data: session } = useSession()
   const [currentTrack, setCurrentTrack] = useState(null)
@@ -14,6 +17,7 @@ export default function useSpotify() {
   const [syncedLyrics, setSyncedLyrics] = useState([])
   const [artistImage, setArtistImage] = useState(null)
   const playlistsFetched = useRef(false)
+  const lastTrackId = useRef(null)
   // ── 2nd/3rd order sync: interpolation + drift correction ──
   const [interpolatedProgress, setInterpolatedProgress] = useState(0)
   const pollAnchor = useRef({ progress: 0, wallTime: 0, playing: false })
@@ -21,7 +25,6 @@ export default function useSpotify() {
   const driftHistory = useRef([]) // recent drift samples for smoothing
   const driftOffset = useRef(0)   // smoothed correction in ms
   const rafId = useRef(null)
-  const rateLimitedUntil = useRef(0)
   const [apiError, setApiError] = useState(null)
 
   // A generic fetch wrapper for Spotify API
@@ -244,15 +247,14 @@ export default function useSpotify() {
     return []
   }, [fetchSpotifyObj])
   const pollInterval = useRef(null)
-  const isFetching = useRef(false)
 
   const throttledFetch = useCallback(async () => {
-    if (isFetching.current) return
-    isFetching.current = true
+    if (globalIsFetching.current) return
+    globalIsFetching.current = true
     try {
       await fetchCurrentlyPlaying()
     } finally {
-      isFetching.current = false
+      globalIsFetching.current = false
     }
   }, [fetchCurrentlyPlaying])
 
