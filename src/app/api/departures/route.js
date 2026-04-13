@@ -90,7 +90,14 @@ export async function GET(request) {
     : `https://opensky-network.org/api/flights/departure?airport=${icao}&begin=${twoHoursAgo}&end=${now}`
 
   try {
-    const res = await fetch(endpoint, { next: { revalidate: 120 } })
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 10000)
+
+    const res = await fetch(endpoint, {
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' },
+    })
+    clearTimeout(timeout)
 
     if (!res.ok) {
       // OpenSky returns 404 if no flights found, 503 if overloaded
@@ -174,6 +181,10 @@ export async function GET(request) {
 
     return NextResponse.json({ flights: unique.slice(0, 25), airport, type })
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    const message = err.name === 'AbortError'
+      ? 'OpenSky API request timed out'
+      : `OpenSky fetch failed: ${err.message}`
+    console.error('[Departures API]', message, endpoint)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
