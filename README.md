@@ -22,8 +22,8 @@ The application runs entirely client-side once hydration completes, utilizing an
 ## Development Settings
 ```bash
 # Clone the repository
-git clone https://github.com/phil426/getphily-dash.git
-cd getphily-dash
+git clone https://github.com/phil426/gp-backseat-dash.git
+cd gp-backseat-dash
 
 # Install dependencies
 npm ci
