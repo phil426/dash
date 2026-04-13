@@ -41,6 +41,7 @@ function TabContent({ activeTab }) {
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('music')
   const [time, setTime] = useState(new Date())
+  const [mounted, setMounted] = useState(false)
   const [theme, setTheme] = useState('default')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -58,6 +59,7 @@ export default function Dashboard() {
   ]
 
   useEffect(() => {
+    setMounted(true)
     const timer = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
@@ -85,8 +87,8 @@ export default function Dashboard() {
       {/* ── Left Panel (collapsible) ── */}
       <div className={`left-panel ${sidebarOpen ? '' : 'collapsed'}`}>
         <div className="left-panel-header">
-          <div className="lp-time">{timeStr}</div>
-          <div className="lp-date">{dateStr}</div>
+          <div className="lp-time">{mounted ? timeStr : '\u00A0'}</div>
+          <div className="lp-date">{mounted ? dateStr : '\u00A0'}</div>
           <div className="lp-driver">
             <div className="lp-driver-avatar">P</div>
             <div className="lp-driver-info">
