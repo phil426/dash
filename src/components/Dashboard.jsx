@@ -1,24 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import dynamic from 'next/dynamic'
-import { PiMusicNoteFill, PiMapPinFill, PiCloudSunFill, PiAirplaneTiltFill, PiChartLineUpFill, PiClipboardTextFill } from 'react-icons/pi'
+import { PiMusicNoteFill, PiCloudSunFill, PiChartLineUpFill, PiClipboardTextFill } from 'react-icons/pi'
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import WeatherWidget from '../widgets/WeatherWidget'
 import MusicWidget from '../widgets/MusicWidget'
 import CabinWidget from '../widgets/CabinWidget'
 import StocksWidget from '../widgets/StocksWidget'
-import DeparturesWidget from '../widgets/DeparturesWidget'
 import SurveyWidget from '../widgets/SurveyWidget'
 import { SpotifyProvider } from '../hooks/useSpotify'
 
-const MapWidget = dynamic(() => import('../widgets/MapWidget'), { ssr: false })
-
 const TABS = [
   { id: 'music',    icon: PiMusicNoteFill,       label: 'Music' },
-  { id: 'map',      icon: PiMapPinFill,          label: 'Map' },
   { id: 'weather',  icon: PiCloudSunFill,        label: 'Weather' },
-  { id: 'flights',  icon: PiAirplaneTiltFill,    label: 'Flights' },
   { id: 'stocks',   icon: PiChartLineUpFill,     label: 'Tickers' },
   { id: 'survey',   icon: PiClipboardTextFill,   label: 'Survey' },
 ]
@@ -30,9 +24,7 @@ function TabContent({ activeTab }) {
       <div style={{ display: activeTab === 'music' ? 'block' : 'none', height: '100%' }}>
         <MusicWidget />
       </div>
-      {activeTab === 'map' && <MapWidget />}
       {activeTab === 'weather' && <WeatherWidget />}
-      {activeTab === 'flights' && <DeparturesWidget />}
       {activeTab === 'stocks' && <StocksWidget />}
       {activeTab === 'survey' && <SurveyWidget />}
     </>
